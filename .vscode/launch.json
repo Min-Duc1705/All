@@ -1,0 +1,14 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-MagicEnglishApplication<magic-english>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "vn.project.magic_english.MagicEnglishApplication",
+      "projectName": "magic-english",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}
