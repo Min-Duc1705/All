@@ -43,6 +43,9 @@ dependencies {
 	// Google Cloud Text-to-Speech for IELTS Listening audio
 	implementation 'com.google.cloud:google-cloud-texttospeech:2.40.0'
 	
+	// Cloudinary for cloud image storage
+	implementation 'com.cloudinary:cloudinary-http44:1.36.0'
+	
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
