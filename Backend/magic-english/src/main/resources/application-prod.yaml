@@ -20,7 +20,7 @@ spring:
       max-request-size: 10MB
   ai:
     openai:
-      api-key: ${GEMINI_API_KEY:AIzaSyDnEMRI-VwplJzIpsCaB0TK8pVhxUfPtkk}
+      api-key: ${GEMINI_API_KEY}
       chat:
         base-url: https://generativelanguage.googleapis.com/
         completions-path: v1beta/openai/chat/completions
@@ -32,21 +32,26 @@ spring:
           read-timeout: 180000
 
 voicerss:
-  api-key: ${VOICERSS_API_KEY:e34b48fae58644daba1ed12a97814e61}
+  api-key: ${VOICERSS_API_KEY}
 
 magic-english:
   jwt:
-    base64-secret: ${JWT_SECRET:TRrx3ZoD9xgevlM73MU8/ay9VO+8RJ7NjvFh5Ab0xoTsKzuPYwCOKDZugGYsVxroYRfP94DH6jBxBhFyBPaQQQ==}
+    base64-secret: ${JWT_SECRET}
     access-token-validity-in-seconds: 36000
     refresh-token-validity-in-seconds: 2592000
   upload: ${UPLOAD_PATH:file:///app/public/}
   ai:
     api-keys:
-      - ${AI_KEY_1:AIzaSyCR5qO252q3NT7vGPayk9ef3cCsM6D_xRI}
-      - ${AI_KEY_2:AIzaSyDGljXCjGl6mXAg0GqrlVrcDnC2IhXYfKo}
-      - ${AI_KEY_3:AIzaSyDBsCLVlBMMX_GPi_DBPAINTmSOhlmOFvM}
-      - ${AI_KEY_4:AIzaSyDnEMRI-VwplJzIpsCaB0TK8pVhxUfPtkk}
-      - ${AI_KEY_5:AIzaSyBPWOnO5gosWNEbMl44WI_Ahl0Xdrvwa9Q}
+      - ${AI_KEY_1}
+      - ${AI_KEY_2}
+      - ${AI_KEY_3}
+      - ${AI_KEY_4}
+      - ${AI_KEY_5}
+      - ${AI_KEY_6}
+      - ${AI_KEY_7}
+      - ${AI_KEY_8}
+      - ${AI_KEY_9}
+      - ${AI_KEY_10}
 
 server:
   port: ${PORT:8080}
