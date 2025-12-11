@@ -1,0 +1,50 @@
+# Production configuration for Render deployment
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  ai:
+    openai:
+      api-key: ${GEMINI_API_KEY:AIzaSyDnEMRI-VwplJzIpsCaB0TK8pVhxUfPtkk}
+      chat:
+        base-url: https://generativelanguage.googleapis.com/
+        completions-path: v1beta/openai/chat/completions
+        options:
+          model: gemini-2.5-flash-lite
+          temperature: 0.7
+        client:
+          connection-timeout: 120000
+          read-timeout: 180000
+
+voicerss:
+  api-key: ${VOICERSS_API_KEY:e34b48fae58644daba1ed12a97814e61}
+
+magic-english:
+  jwt:
+    base64-secret: ${JWT_SECRET:TRrx3ZoD9xgevlM73MU8/ay9VO+8RJ7NjvFh5Ab0xoTsKzuPYwCOKDZugGYsVxroYRfP94DH6jBxBhFyBPaQQQ==}
+    access-token-validity-in-seconds: 36000
+    refresh-token-validity-in-seconds: 2592000
+  upload: ${UPLOAD_PATH:file:///app/public/}
+  ai:
+    api-keys:
+      - ${AI_KEY_1:AIzaSyCR5qO252q3NT7vGPayk9ef3cCsM6D_xRI}
+      - ${AI_KEY_2:AIzaSyDGljXCjGl6mXAg0GqrlVrcDnC2IhXYfKo}
+      - ${AI_KEY_3:AIzaSyDBsCLVlBMMX_GPi_DBPAINTmSOhlmOFvM}
+      - ${AI_KEY_4:AIzaSyDnEMRI-VwplJzIpsCaB0TK8pVhxUfPtkk}
+      - ${AI_KEY_5:AIzaSyBPWOnO5gosWNEbMl44WI_Ahl0Xdrvwa9Q}
+
+server:
+  port: ${PORT:8080}
