@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
+// import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.project.magic_english.model.*;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TOEICService {
 
-    private final ChatClient chatClient;
+    private final AiClientService aiClientService; // Changed from ChatClient
     private final TOEICTestRepository testRepository;
     private final TOEICTestHistoryRepository historyRepository;
     private final TOEICUserAnswerRepository userAnswerRepository;
@@ -216,7 +216,7 @@ public class TOEICService {
                 || request.getSection().contains("Part 4");
 
         String sectionGuidance = isListening
-                ? "For Listening: Create short business English conversations or announcements (100-150 words each) in the 'passage' field. Use natural spoken business English with clear speaker labels (e.g., 'Manager:', 'Employee:'). Focus on workplace scenarios: meetings, phone calls, announcements, instructions."
+                ? "For Listening: Create short business English conversations or announcements (100-150 words each) in the 'passage' field. Use natural spoken business English. IMPORTANT: You MUST use 'Man:' and 'Woman:' labels for conversations to indicate different speakers. Focus on workplace scenarios: meetings, phone calls, announcements, instructions."
                 : "For Reading: Include business documents, emails, advertisements, or articles with comprehension questions. Use realistic business scenarios.";
 
         return String.format(
@@ -270,10 +270,8 @@ public class TOEICService {
             try {
                 log.info("Attempting to generate test with AI (attempt {}/{})", retryCount + 1, maxRetries);
 
-                String response = chatClient.prompt()
-                        .user(prompt)
-                        .call()
-                        .content();
+                // Using AiClientService for rotation
+                String response = aiClientService.generate(prompt);
 
                 log.info("AI Response received successfully, length: {}", response.length());
                 return response;

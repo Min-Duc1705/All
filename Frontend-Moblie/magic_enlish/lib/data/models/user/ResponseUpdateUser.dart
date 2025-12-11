@@ -12,22 +12,15 @@ class ResponseUpdateUser {
   });
 
   factory ResponseUpdateUser.fromJson(Map<String, dynamic> json) {
-    // Backend trả về { "user": {...}, "access_token": "..." }
-    final userJson = json['user'] as Map<String, dynamic>;
     return ResponseUpdateUser(
-      id: userJson['id'],
-      name: userJson['name'],
-      email: userJson['email'],
-      avatarUrl: userJson['avatarUrl'],
+      id: json['id'],
+      name: json['name'],
+      email: json['email'],
+      avatarUrl: json['avatarUrl'],
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'email': email,
-      'avatarUrl': avatarUrl,
-    };
+    return {'id': id, 'name': name, 'email': email, 'avatarUrl': avatarUrl};
   }
 }

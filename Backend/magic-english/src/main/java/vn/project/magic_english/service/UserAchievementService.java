@@ -28,9 +28,10 @@ public class UserAchievementService {
      * @param currentValue - Giá trị hiện tại của user (số từ vựng, số lần kiểm tra
      *                     ngữ pháp, số ngày streak)
      */
-    public void checkAndGrantAchievements(User user, String metricType, Long currentValue) {
+    public List<Achievement> checkAndGrantAchievements(User user, String metricType, Long currentValue) {
         // Lấy tất cả achievement có metricType phù hợp
         List<Achievement> achievements = achievementRepository.findAll();
+        List<Achievement> newAchievements = new java.util.ArrayList<>();
 
         for (Achievement achievement : achievements) {
             // Kiểm tra metricType có khớp không
@@ -59,10 +60,13 @@ public class UserAchievementService {
             userAchievement.setAchievedAt(Instant.now());
 
             userAchievementRepository.save(userAchievement);
+            newAchievements.add(achievement);
 
             System.out
                     .println("🏆 Achievement unlocked: " + user.getName() + " earned '" + achievement.getTitle() + "'");
         }
+
+        return newAchievements;
     }
 
     /**
@@ -77,5 +81,14 @@ public class UserAchievementService {
      */
     public List<Achievement> getAllAchievements() {
         return achievementRepository.findAll();
+    }
+
+    /**
+     * Reset tất cả achievements của user (dùng cho testing)
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public void resetUserAchievements(Long userId) {
+        userAchievementRepository.deleteByUserId(userId);
+        System.out.println("🔄 Reset achievements for user ID: " + userId);
     }
 }

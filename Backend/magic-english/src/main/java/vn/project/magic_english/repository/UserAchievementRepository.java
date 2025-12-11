@@ -12,4 +12,6 @@ public interface UserAchievementRepository
     boolean existsByUserIdAndAchievementId(Long userId, Long achievementId);
 
     List<UserAchievement> findByUserId(Long userId);
+
+    void deleteByUserId(Long userId);
 }

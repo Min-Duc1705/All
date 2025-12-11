@@ -3,7 +3,7 @@ package vn.project.magic_english.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.ai.chat.client.ChatClient;
+// import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -31,7 +31,7 @@ import vn.project.magic_english.utils.SecurityUtil;
 @Slf4j
 public class GrammarService {
 
-    private final ChatClient chatClient;
+    private final AiClientService aiClientService; // Changed from ChatClient
     private final GrammarRepository grammarRepository;
     private final UserRepository userRepository;
     private final UserAchievementService userAchievementService;
@@ -151,10 +151,8 @@ public class GrammarService {
                 """, text);
 
         try {
-            String aiResponse = chatClient.prompt()
-                    .user(prompt)
-                    .call()
-                    .content();
+            // Using AiClientService for rotation
+            String aiResponse = aiClientService.generate(prompt);
 
             log.info("AI grammar check response received");
             parseAIResponseIntoEntity(grammar, aiResponse);

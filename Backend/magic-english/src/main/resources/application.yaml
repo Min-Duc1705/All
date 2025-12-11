@@ -37,7 +37,7 @@ spring:
       max-request-size: 10MB
   ai:
     openai:
-      api-key: AIzaSyBp8XotLNv_jCWqmpXz15jtHbMWpa8eK84
+      api-key: AIzaSyDnEMRI-VwplJzIpsCaB0TK8pVhxUfPtkk
       chat:
         base-url: https://generativelanguage.googleapis.com/
         completions-path: v1beta/openai/chat/completions
@@ -63,6 +63,19 @@ magic_english:
     access-token-validity-in-seconds: 36000 # 1 hour
     refresh-token-validity-in-seconds: 2592000 # 30 days
   upload: file:///T:/TryHard_IT_Project/Moblie/BTL/Backend/magic-english/public/
+  ai:
+    api-keys:
+      - AIzaSyCR5qO252q3NT7vGPayk9ef3cCsM6D_xRI # Key 1
+      - AIzaSyDGljXCjGl6mXAg0GqrlVrcDnC2IhXYfKo # Key 2
+      - AIzaSyDBsCLVlBMMX_GPi_DBPAINTmSOhlmOFvM # Key 3
+      - AIzaSyDnEMRI-VwplJzIpsCaB0TK8pVhxUfPtkk # Key 4
+      - AIzaSyBPWOnO5gosWNEbMl44WI_Ahl0Xdrvwa9Q # Key 5
+      - AIzaSyDNLRENu6mzqhl8MyzXQsbrHeOmXdvlfkQ # Key 6
+      - AIzaSyA6FQu8RXFuzRafgHNFrRLYGYGJpo6LuKA # Key 7
+      - AIzaSyC5ZocbsUsUo7JwLOAlXX4O9WtTIl6ctp8 # Key 8
+      - AIzaSyCiNxpsBd0K5vwKsMPolEhw_PRIUt5dgXE # Key 9
+      - AIzaSyD1NGlmqX_A_GMF20GUcHhQFA1OU4s3Sno # Key 10
+      - AIzaSyD8PJCLEuybZLqDMNrFrFgICH6yzah1Ea0 # Key 11
 
 server:
   port: 8080

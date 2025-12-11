@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:magic_enlish/data/models/vocabulary/Vocabulary.dart';
 import 'package:magic_enlish/data/repositories/vocabulary/vocabulary_repository.dart';
+import 'package:magic_enlish/data/services/achievement_service.dart';
+import 'package:magic_enlish/core/widgets/common/achievement_dialog.dart';
 
 class VocabularyProvider with ChangeNotifier {
   final VocabularyRepository _vocabularyRepository = VocabularyRepository();
@@ -137,6 +139,32 @@ class VocabularyProvider with ChangeNotifier {
       );
       _vocabularies.add(newVocab);
       _applyFilter();
+
+      // Check for achievements
+      if (context != null && context.mounted) {
+        try {
+          print(
+            '🔔 [Flutter] Calling checkAchievement with vocab count: ${_vocabularies.length}',
+          );
+          final achievementService = AchievementService();
+          // 'vocab_added' is the metric, current value is total list size
+          final newAchievements = await achievementService.checkAchievement(
+            'vocab_added',
+            _vocabularies.length,
+          );
+          print('🔔 [Flutter] Received ${newAchievements.length} achievements');
+
+          if (newAchievements.isNotEmpty && context.mounted) {
+            // Show the first one (or loop if multiple)
+            print(
+              '🎉 [Flutter] Showing achievement dialog: ${newAchievements.first.title}',
+            );
+            AchievementDialog.show(context, newAchievements.first);
+          }
+        } catch (e) {
+          print('Achievement check failed: $e');
+        }
+      }
     } catch (e) {
       _error = e.toString();
     } finally {

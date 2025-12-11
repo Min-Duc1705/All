@@ -128,7 +128,7 @@ public class TextToSpeechService {
             // Final fallback
             String encodedText = java.net.URLEncoder.encode(text, java.nio.charset.StandardCharsets.UTF_8);
             return "https://code.responsivevoice.org/getvoice.php?t=" + encodedText
-                    + "&tl=en-US&sv=&vn=&pitch=0.5&rate=0.4&vol=1";
+                    + "&tl=en-GB&sv=&vn=&pitch=0.5&rate=0.4&vol=1";
         }
     }
 }

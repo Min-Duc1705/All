@@ -5,6 +5,9 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:magic_enlish/providers/vocabulary/vocabulary_provider.dart';
 import 'package:magic_enlish/data/models/vocabulary/Vocabulary.dart';
 
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:permission_handler/permission_handler.dart';
+
 class ListeningPracticeScreen extends StatefulWidget {
   const ListeningPracticeScreen({super.key});
 
@@ -22,10 +25,168 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> {
   final TextEditingController _answerController = TextEditingController();
   final AudioPlayer _audioPlayer = AudioPlayer();
 
+  // Speech to text
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+
+  String _lastWords = '';
+
   @override
   void initState() {
     super.initState();
+    _speech = stt.SpeechToText();
     _loadExercises();
+  }
+
+  Future<void> _startListening() async {
+    // Request permission if not granted
+    var status = await Permission.microphone.status;
+    if (status.isDenied) {
+      final result = await Permission.microphone.request();
+      if (!result.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Microphone permission required')),
+          );
+        }
+        return;
+      }
+    }
+
+    // Emulator robustness: Reset speech instance
+    try {
+      if (_isListening) {
+        await _speech.stop();
+        await _speech.cancel();
+      }
+    } catch (e) {
+      print('Error stopping speech: $e');
+    }
+
+    _speech = stt.SpeechToText(); // Re-create instance
+
+    try {
+      bool available = await _speech.initialize(
+        onError: (val) {
+          print('Speech error: $val');
+          if (mounted) {
+            setState(() => _isListening = false);
+            String message = 'Error: ${val.errorMsg}';
+            if (val.errorMsg == 'error_speech_timeout') {
+              message = 'No speech detected. Please speak louder.';
+            } else if (val.errorMsg == 'error_no_match') {
+              message = 'Could not understand. Try checking your microphone.';
+            }
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message), backgroundColor: Colors.orange),
+            );
+          }
+        },
+        onStatus: (val) {
+          print('Speech status: $val');
+          if (val == 'done') {
+            if (mounted) {
+              setState(() => _isListening = false);
+              // Auto-check answer when done
+              if (_answerController.text.isNotEmpty && !_isChecked) {
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  if (mounted) {
+                    _checkAnswer();
+                  }
+                });
+              }
+            }
+          } else if (val == 'notListening') {
+            if (mounted) setState(() => _isListening = false);
+          }
+        },
+      );
+
+      if (available) {
+        // Clear previous input
+        setState(() {
+          _lastWords = '';
+          _answerController.clear();
+        });
+
+        // Find best English locale
+        var locales = await _speech.locales();
+        var selectedLocaleId = 'en_US'; // Default
+
+        // Try to find specific English locales in order of preference
+        var preferredLocales = ['en_US', 'en_GB', 'en_AU', 'en_IN', 'en'];
+        bool found = false;
+
+        for (var pref in preferredLocales) {
+          try {
+            var match = locales.firstWhere((l) => l.localeId.startsWith(pref));
+            selectedLocaleId = match.localeId;
+            found = true;
+            print('Selected locale: $selectedLocaleId');
+            break;
+          } catch (e) {
+            continue;
+          }
+        }
+
+        // If exact match not found but we have locales, try any 'en'
+        if (!found && locales.isNotEmpty) {
+          try {
+            var match = locales.firstWhere(
+              (l) => l.localeId.toLowerCase().startsWith('en'),
+              orElse: () => locales.first,
+            );
+            selectedLocaleId = match.localeId;
+            print('Fallback locale: $selectedLocaleId');
+          } catch (e) {
+            print('Locale selection error: $e');
+          }
+        }
+
+        setState(() => _isListening = true);
+
+        await _speech.listen(
+          onResult: (result) {
+            setState(() {
+              _lastWords = result.recognizedWords;
+              _answerController.text = _lastWords;
+            });
+          },
+          localeId: selectedLocaleId,
+          onDevice: false, // Prefer server-side for "Google-like" smarts
+          listenFor: const Duration(seconds: 30),
+          pauseFor: const Duration(seconds: 3),
+          partialResults: false, // Wait for stable results
+          cancelOnError: true,
+          listenMode: stt.ListenMode.search, // Better for short phrases
+        );
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Speech recognition initialized but not available'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Speech init exception: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Could not initialize speech recognition. Try again.',
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  void _stopListening() async {
+    await _speech.stop();
+    setState(() => _isListening = false);
   }
 
   @override
@@ -34,6 +195,7 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> {
     _audioPlayer.stop();
     _audioPlayer.release();
     _audioPlayer.dispose();
+    _speech.cancel();
     super.dispose();
   }
 
@@ -121,6 +283,7 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> {
         _currentQuestionIndex++;
         _isChecked = false;
         _answerController.clear();
+        _lastWords = '';
       });
     } else {
       _showResultDialog();
@@ -171,6 +334,7 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> {
                 _score = 0;
                 _isChecked = false;
                 _answerController.clear();
+                _lastWords = '';
               });
               _loadExercises();
             },
@@ -266,7 +430,6 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: 40),
 
             // Audio Player
@@ -323,6 +486,21 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> {
                 labelText: 'What did you hear?',
                 hintText: 'Type the word here',
                 prefixIcon: Icon(Icons.edit, color: practiceColor),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isListening ? Icons.mic : Icons.mic_none,
+                    color: _isListening ? Colors.red : Colors.grey,
+                  ),
+                  onPressed: _isChecked
+                      ? null
+                      : () {
+                          if (_isListening) {
+                            _stopListening();
+                          } else {
+                            _startListening();
+                          }
+                        },
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

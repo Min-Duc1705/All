@@ -4,6 +4,8 @@ import 'package:magic_enlish/core/widgets/common/app_bottom_nav.dart';
 import 'package:magic_enlish/core/widgets/progress/donut_chart_card.dart';
 import 'package:magic_enlish/core/widgets/progress/bar_chart_card.dart';
 import 'package:magic_enlish/core/widgets/profile/stats_grid.dart';
+import 'package:magic_enlish/core/constants/api_constants.dart';
+import 'package:magic_enlish/data/models/progress/achievement.dart';
 import 'package:magic_enlish/providers/progress/progress_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -123,8 +125,11 @@ class _ProgressPageState extends State<ProgressPage> {
 
                                 const SizedBox(height: 24),
 
-                                // Achievements Section (hardcoded for now)
-                                _buildAchievementsSection(textColor),
+                                // Achievements Section (dynamic from API)
+                                _buildAchievementsSection(
+                                  textColor,
+                                  progressProvider,
+                                ),
 
                                 const SizedBox(height: 24),
 
@@ -160,7 +165,13 @@ class _ProgressPageState extends State<ProgressPage> {
     );
   }
 
-  Widget _buildAchievementsSection(Color textColor) {
+  Widget _buildAchievementsSection(
+    Color textColor,
+    ProgressProvider progressProvider,
+  ) {
+    final allAchievements = progressProvider.allAchievements;
+    final unlockedIds = progressProvider.unlockedAchievementIds;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -174,38 +185,27 @@ class _ProgressPageState extends State<ProgressPage> {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 160,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            children: [
-              _achievementBadge(
-                title: 'Word Wizard',
-                subtitle: '100 words',
-                isLocked: false,
-              ),
-              _achievementBadge(
-                title: 'Grammar Guru',
-                subtitle: '50 tasks',
-                isLocked: false,
-              ),
-              _achievementBadge(
-                title: 'Streak Champ',
-                subtitle: '7-day streak',
-                isLocked: false,
-              ),
-              _achievementBadge(
-                title: 'Locked',
-                subtitle: 'Keep going!',
-                isLocked: true,
-              ),
-              _achievementBadge(
-                title: 'Locked',
-                subtitle: 'Keep going!',
-                isLocked: true,
-              ),
-            ],
-          ),
+          height: 180,
+          child: allAchievements.isEmpty
+              ? Center(
+                  child: Text(
+                    'No achievements available',
+                    style: GoogleFonts.lexend(fontSize: 14, color: Colors.grey),
+                  ),
+                )
+              : ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  itemCount: allAchievements.length,
+                  itemBuilder: (context, index) {
+                    final achievement = allAchievements[index];
+                    final isUnlocked = unlockedIds.contains(achievement.id);
+                    return _achievementBadge(
+                      achievement: achievement,
+                      isLocked: !isUnlocked,
+                    );
+                  },
+                ),
         ),
       ],
     );
@@ -233,35 +233,53 @@ class _ProgressPageState extends State<ProgressPage> {
   }
 
   Widget _achievementBadge({
-    required String title,
-    required String subtitle,
+    required Achievement achievement,
     required bool isLocked,
   }) {
     const textColor = Color(0xFF100d1b);
     const textMuted = Color(0xFF888888);
 
     return Container(
-      width: 96,
-      margin: const EdgeInsets.only(right: 16),
+      width: 112,
+      margin: const EdgeInsets.only(right: 12),
       child: Column(
         children: [
           Container(
-            width: 80,
-            height: 80,
+            width: 100,
+            height: 100,
+            padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.grey.shade200,
+              color: Colors.white,
+              border: Border.all(
+                color: isLocked
+                    ? Colors.grey.shade300
+                    : const Color(0xFF2E7D32),
+                width: 2,
+              ),
+              boxShadow: isLocked
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: Colors.green.withOpacity(0.2),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
             ),
-            child: Icon(
-              Icons.emoji_events,
-              size: 40,
-              color: isLocked ? Colors.grey : Colors.amber,
+            child: ClipOval(
+              child: Container(
+                color: Colors.white,
+                child: _buildAchievementIcon(achievement, isLocked),
+              ),
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            title,
+            isLocked ? 'Locked' : achievement.title,
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.lexend(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -269,12 +287,70 @@ class _ProgressPageState extends State<ProgressPage> {
             ),
           ),
           Text(
-            subtitle,
+            isLocked
+                ? 'Keep going!'
+                : '${achievement.requiredValue} ${_getMetricLabel(achievement.metricType)}',
             textAlign: TextAlign.center,
             style: GoogleFonts.lexend(fontSize: 12, color: textMuted),
           ),
         ],
       ),
     );
+  }
+
+  String _getMetricLabel(String metricType) {
+    switch (metricType) {
+      case 'vocab_added':
+        return 'words';
+      case 'grammar_check':
+        return 'checks';
+      case 'learning_streak':
+        return 'days';
+      default:
+        return '';
+    }
+  }
+
+  Widget _buildAchievementIcon(Achievement achievement, bool isLocked) {
+    // If locked, show lock icon
+    if (isLocked) {
+      return Icon(Icons.lock, size: 36, color: Colors.grey.shade400);
+    }
+
+    // If has iconUrl, try to load image
+    if (achievement.iconUrl.isNotEmpty) {
+      String fullUrl = achievement.iconUrl;
+      // Build full URL if iconUrl is just a filename
+      if (!achievement.iconUrl.startsWith('http')) {
+        String baseUrl = ApiConstants.baseUrl.replaceAll('/api/v1', '');
+        fullUrl = '$baseUrl/storage/achievement/${achievement.iconUrl}';
+      }
+
+      return Image.network(
+        fullUrl,
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Icon(Icons.emoji_events, size: 40, color: Colors.amber);
+        },
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.amber.shade300,
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    // Default icon
+    return Icon(Icons.emoji_events, size: 40, color: Colors.amber);
   }
 }

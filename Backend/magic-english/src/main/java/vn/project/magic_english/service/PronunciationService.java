@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 import vn.project.magic_english.model.response.PronunciationFeedbackResponse;
 
@@ -17,7 +16,7 @@ import vn.project.magic_english.model.response.PronunciationFeedbackResponse;
 @Slf4j
 public class PronunciationService {
 
-    private final ChatClient chatClient;
+    private final AiClientService aiClientService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -80,10 +79,7 @@ public class PronunciationService {
     }
 
     private String generateWithAI(String prompt) {
-        return chatClient.prompt()
-                .user(prompt)
-                .call()
-                .content();
+        return aiClientService.generate(prompt);
     }
 
     private PronunciationFeedbackResponse parseAIResponse(

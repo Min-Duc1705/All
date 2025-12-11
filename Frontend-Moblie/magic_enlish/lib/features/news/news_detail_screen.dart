@@ -654,41 +654,52 @@ class _VocabularyPreviewDialogState extends State<_VocabularyPreviewDialog> {
 
     try {
       final provider = Provider.of<VocabularyProvider>(context, listen: false);
-      await provider.addVocabulary(_previewVocabulary!, context);
+
+      // Close this dialog first, then show achievement dialog on parent context
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Get the parent context from the navigator
+      final navigatorContext = Navigator.of(
+        context,
+        rootNavigator: true,
+      ).context;
+
+      // Now call addVocabulary with parent context so achievement dialog shows correctly
+      await provider.addVocabulary(_previewVocabulary!, navigatorContext);
 
       if (provider.error != null) {
         throw Exception(provider.error);
       }
 
-      if (mounted) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white, size: 24),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Added "${widget.word}" to vocabulary',
-                    style: GoogleFonts.lexend(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
+      // Show success snackbar using parent context
+      ScaffoldMessenger.of(navigatorContext).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Added "${widget.word}" to vocabulary',
+                  style: GoogleFonts.lexend(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-              ],
-            ),
-            backgroundColor: const Color(0xff4CAF50),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.all(16),
-            duration: const Duration(seconds: 3),
+              ),
+            ],
           ),
-        );
-      }
+          backgroundColor: const Color(0xff4CAF50),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
+          duration: const Duration(seconds: 3),
+        ),
+      );
     } catch (e) {
       if (mounted) {
         setState(() {

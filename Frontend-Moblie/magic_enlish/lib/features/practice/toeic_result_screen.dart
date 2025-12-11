@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../data/models/toeic_test.dart';
+import '../../data/models/toeic/toeic_test.dart';
 
 class ToeicResultScreen extends StatelessWidget {
   final ToeicTestResult result;

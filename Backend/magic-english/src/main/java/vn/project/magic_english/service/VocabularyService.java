@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
+// import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class VocabularyService {
 
-    private final ChatClient chatClient;
+    private final AiClientService aiClientService;
     private final VocabularyRepository vocabularyRepository;
     private final UserRepository userRepository;
     private final GrammarRepository grammarRepository;
@@ -80,9 +80,13 @@ public class VocabularyService {
         Vocabulary saved = vocabularyRepository.save(vocabulary);
         log.info("Vocabulary saved with ID: {}", saved.getId());
 
-        // Kiểm tra và cấp achievement
-        Long totalVocabs = vocabularyRepository.countByUserId(user.getId());
-        userAchievementService.checkAndGrantAchievements(user, "vocab_added", totalVocabs);
+        // NOTE: Achievement checking is handled by Flutter calling
+        // /user-achievements/check endpoint
+        // This allows Flutter to receive the newly unlocked achievements and show popup
+        // Old code (removed to avoid duplicate check):
+        // Long totalVocabs = vocabularyRepository.countByUserId(user.getId());
+        // userAchievementService.checkAndGrantAchievements(user, "vocab_added",
+        // totalVocabs);
 
         return VocabularyDetailResponse.fromEntity(saved);
     }
@@ -121,10 +125,8 @@ public class VocabularyService {
                 """, word, word);
 
         try {
-            String aiResponse = chatClient.prompt()
-                    .user(prompt != null ? prompt : "")
-                    .call()
-                    .content();
+            // Using AiClientService
+            String aiResponse = aiClientService.generate(prompt != null ? prompt : "");
 
             log.info("AI Response received for: {}", word);
             parseAIResponseIntoEntity(vocabulary, aiResponse);

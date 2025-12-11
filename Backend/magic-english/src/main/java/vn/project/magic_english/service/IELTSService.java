@@ -5,10 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.project.magic_english.model.*;
@@ -20,10 +16,11 @@ import vn.project.magic_english.repository.*;
 import vn.project.magic_english.utils.SecurityUtil;
 import vn.project.magic_english.utils.error.IdInvalidException;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,7 +28,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class IELTSService {
 
-    private final ChatClient chatClient;
+    private final AiClientService aiClientService;
     private final IELTSTestRepository testRepository;
     private final IELTSTestHistoryRepository historyRepository;
     private final IELTSUserAnswerRepository userAnswerRepository;
@@ -216,11 +213,12 @@ public class IELTSService {
                         For Reading skill: Include a reading passage and questions about it.
                         For Listening skill: Create a natural English conversation or monologue script in the "passage" field.
                         The passage should be approximately 150-200 words (around 900-1200 characters) that will be converted to audio.
-                        Make it sound like natural spoken English. Include speaker names for conversations (e.g., "Sarah:", "John:").
+                        Make it sound like natural spoken English.
+                        IMPORTANT: You MUST use "Man:" and "Woman:" labels for conversations to indicate different speakers. This allows the system to use different voices.
                         Examples for Listening:
-                        - A conversation between two people discussing a topic (with speaker labels)
-                        - A monologue about a topic (like a news report, announcement, or lecture)
-                        - A dialogue in a real-life situation (restaurant, airport, office, etc.)
+                        - A conversation between a man and a woman (e.g., "Man: Hello. Woman: Hi there.")
+                        - A monologue (e.g., "Man: Welcome to the news.")
+                        - A dialogue in a real-life situation.
 
                         For Writing/Speaking: Create grammar and vocabulary questions (no passage needed).
 
@@ -260,10 +258,8 @@ public class IELTSService {
 
     private String generateWithAI(String prompt) {
         try {
-            String response = chatClient.prompt()
-                    .user(prompt)
-                    .call()
-                    .content();
+            // Using AiClientService
+            String response = aiClientService.generate(prompt);
 
             log.info("AI Response: {}", response);
             return response;
