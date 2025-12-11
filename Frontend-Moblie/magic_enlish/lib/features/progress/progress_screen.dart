@@ -131,7 +131,7 @@ class _ProgressPageState extends State<ProgressPage> {
                                   progressProvider,
                                 ),
 
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 8),
 
                                 // Vocabulary Breakdown
                                 if (progressProvider.vocabularyBreakdown !=
@@ -312,9 +312,40 @@ class _ProgressPageState extends State<ProgressPage> {
   }
 
   Widget _buildAchievementIcon(Achievement achievement, bool isLocked) {
-    // If locked, show lock icon
+    // If locked, show cup with lock overlay
     if (isLocked) {
-      return Icon(Icons.lock, size: 36, color: Colors.grey.shade400);
+      return SizedBox(
+        width: 80,
+        height: 80,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Cup icon with amber/gold color
+            Icon(Icons.emoji_events, size: 56, color: Colors.amber.shade600),
+            // Lock badge at bottom right
+            Positioned(
+              bottom: 6,
+              right: 6,
+              child: Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey.shade300, width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Icon(Icons.lock, size: 14, color: Colors.grey.shade500),
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     // If has iconUrl, try to load image

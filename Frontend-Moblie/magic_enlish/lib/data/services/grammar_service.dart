@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:magic_enlish/data/models/grammar/grammar.dart';
+import 'package:magic_enlish/core/constants/api_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GrammarService {
-  final String baseUrl = 'http://10.0.2.2:8080/api/v1/grammar';
+  String get baseUrl => '${ApiConstants.baseUrl}/grammar';
 
   Future<String?> _getAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
