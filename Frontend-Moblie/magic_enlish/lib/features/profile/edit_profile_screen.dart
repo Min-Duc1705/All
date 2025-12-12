@@ -3,14 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:magic_enlish/core/widgets/common/app_top_bar.dart';
 import 'package:magic_enlish/core/utils/snackbar_utils.dart';
+import 'package:magic_enlish/core/utils/backend_utils.dart';
 import 'package:magic_enlish/providers/auth/auth_provider.dart';
 import 'package:magic_enlish/data/models/auth/ResponseLogin.dart';
 import 'dart:io';
 import 'package:magic_enlish/data/services/file_service.dart';
 import 'package:magic_enlish/data/services/user_service.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter/foundation.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -59,17 +58,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String _computeDisplayUrl(String raw) {
     if (raw.isEmpty) return raw;
     if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
-    // treat as filename: build backend url
-    var backend = dotenv.env['Backend_URL'] ?? '';
-    if (backend.isNotEmpty) {
-      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-        backend = backend
-            .replaceAll('localhost', '10.0.2.2')
-            .replaceAll('127.0.0.1', '10.0.2.2');
-      }
-      return '$backend/storage/avatar/$raw';
-    }
-    return raw;
+    // Use BackendUtils to build URL for filenames
+    return BackendUtils.getFullUrl('/storage/avatar/$raw');
   }
 
   String _defaultAvatar(String name) {

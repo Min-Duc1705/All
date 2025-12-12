@@ -6,10 +6,10 @@ import 'package:magic_enlish/core/widgets/profile/profile_card.dart';
 import 'package:magic_enlish/core/widgets/common/section_header.dart';
 import 'package:magic_enlish/core/widgets/profile/settings_section.dart';
 import 'package:magic_enlish/features/profile/edit_profile_screen.dart';
+import 'package:magic_enlish/core/utils/backend_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:magic_enlish/providers/auth/auth_provider.dart';
 import 'package:magic_enlish/features/auth/login_screen.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -239,12 +239,7 @@ class ProfilePage extends StatelessWidget {
       return avatarUrl;
     }
 
-    // Otherwise, it's a filename - build backend URL
-    final backend = dotenv.env['Backend_URL'] ?? '';
-    if (backend.isNotEmpty) {
-      return '$backend/storage/avatar/$avatarUrl';
-    }
-
-    return defaultAvatar;
+    // Otherwise, it's a filename - use BackendUtils to build URL
+    return BackendUtils.getFullUrl('/storage/avatar/$avatarUrl');
   }
 }

@@ -4,7 +4,7 @@ import 'package:magic_enlish/core/widgets/common/app_bottom_nav.dart';
 import 'package:magic_enlish/core/widgets/progress/donut_chart_card.dart';
 import 'package:magic_enlish/core/widgets/progress/bar_chart_card.dart';
 import 'package:magic_enlish/core/widgets/profile/stats_grid.dart';
-import 'package:magic_enlish/core/constants/api_constants.dart';
+import 'package:magic_enlish/core/utils/backend_utils.dart';
 import 'package:magic_enlish/data/models/progress/achievement.dart';
 import 'package:magic_enlish/providers/progress/progress_provider.dart';
 import 'package:provider/provider.dart';
@@ -350,12 +350,12 @@ class _ProgressPageState extends State<ProgressPage> {
 
     // If has iconUrl, try to load image
     if (achievement.iconUrl.isNotEmpty) {
-      String fullUrl = achievement.iconUrl;
-      // Build full URL if iconUrl is just a filename
-      if (!achievement.iconUrl.startsWith('http')) {
-        String baseUrl = ApiConstants.baseUrl.replaceAll('/api/v1', '');
-        fullUrl = '$baseUrl/storage/achievement/${achievement.iconUrl}';
-      }
+      // Use BackendUtils to handle both relative and absolute URLs
+      String fullUrl = BackendUtils.getFullUrl(
+        achievement.iconUrl.startsWith('http')
+            ? achievement.iconUrl
+            : '/storage/achievement/${achievement.iconUrl}',
+      );
 
       return Image.network(
         fullUrl,

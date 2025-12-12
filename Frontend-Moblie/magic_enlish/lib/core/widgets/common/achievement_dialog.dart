@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:magic_enlish/core/constants/api_constants.dart';
+import 'package:magic_enlish/core/utils/backend_utils.dart';
 import 'package:magic_enlish/data/models/progress/achievement.dart';
 
 class AchievementDialog extends StatefulWidget {
@@ -512,11 +512,12 @@ class _AchievementDialogState extends State<AchievementDialog>
   Widget _buildAchievementIcon() {
     // Check if we have a valid icon URL
     if (widget.achievement.iconUrl.isNotEmpty) {
-      String fullUrl = widget.achievement.iconUrl;
-      if (!widget.achievement.iconUrl.startsWith('http')) {
-        String baseUrl = ApiConstants.baseUrl.replaceAll('/api/v1', '');
-        fullUrl = '$baseUrl/storage/achievement/${widget.achievement.iconUrl}';
-      }
+      // Use BackendUtils to handle both relative and absolute URLs
+      String fullUrl = BackendUtils.getFullUrl(
+        widget.achievement.iconUrl.startsWith('http')
+            ? widget.achievement.iconUrl
+            : '/storage/achievement/${widget.achievement.iconUrl}',
+      );
 
       return Image.network(
         fullUrl,
