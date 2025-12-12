@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:magic_enlish/data/models/ielts/ielts_test.dart';
 import 'package:magic_enlish/data/services/ielts_service.dart';
 import 'package:magic_enlish/features/practice/ielts_result_screen.dart';
+import 'package:magic_enlish/core/utils/backend_utils.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
 
@@ -103,8 +104,9 @@ class _IELTSTakeTestScreenState extends State<IELTSTakeTestScreen> {
       // Stop any previous audio
       await _audioPlayer.stop();
 
-      // Properly encode the URL
-      String encodedUrl = audioUrl.replaceAll('+', '%20');
+      // Build full URL and encode properly
+      String fullUrl = BackendUtils.getFullUrl(audioUrl);
+      String encodedUrl = fullUrl.replaceAll('+', '%20');
       debugPrint('Fetching audio from: $encodedUrl');
 
       // Fetch audio bytes with http (better timeout control)

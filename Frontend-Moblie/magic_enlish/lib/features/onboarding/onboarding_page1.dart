@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:magic_enlish/core/utils/backend_utils.dart';
 import 'package:magic_enlish/core/constants/api_constants.dart';
 
 class OnboardingPage1 extends StatelessWidget {
@@ -81,7 +82,11 @@ class OnboardingPage1 extends StatelessWidget {
                         // Network Image
                         Positioned.fill(
                           child: Image.network(
-                            '${ApiConstants.baseUrl.replaceAll('/api/v1', '')}/onboard/onboard1.png',
+                            BackendUtils.getImageUrl(
+                              localPath: '/onboard/onboard1.png',
+                              cloudinaryUrl:
+                                  'https://res.cloudinary.com/dekprzmna/image/upload/v1765509905/onboard1_pweeet.png',
+                            ),
                             fit: BoxFit.cover,
                             loadingBuilder: (context, child, loadingProgress) {
                               if (loadingProgress == null) return child;

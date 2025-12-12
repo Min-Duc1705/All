@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:magic_enlish/core/constants/api_constants.dart';
+import 'package:magic_enlish/core/utils/backend_utils.dart';
 
 class OnboardingPage3 extends StatelessWidget {
   final VoidCallback onStartLearning;
@@ -15,8 +15,6 @@ class OnboardingPage3 extends StatelessWidget {
     required this.currentPage,
     required this.onDotTap,
   });
-
-  String get _baseUrl => ApiConstants.baseUrl.replaceAll('/api/v1', '');
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +131,11 @@ class OnboardingPage3 extends StatelessWidget {
                                   ),
                                   child: ClipOval(
                                     child: Image.network(
-                                      '$_baseUrl/onboard/onboard3.png',
+                                      BackendUtils.getImageUrl(
+                                        localPath: '/onboard/onboard3.png',
+                                        cloudinaryUrl:
+                                            'https://res.cloudinary.com/dekprzmna/image/upload/v1765509905/onboard3_oqcynm.png',
+                                      ),
                                       fit: BoxFit.cover,
                                       errorBuilder: (_, __, ___) => Icon(
                                         Icons.person,

@@ -46,10 +46,7 @@ class ProfilePage extends StatelessWidget {
                     return ProfileCard(
                       name: user?.name ?? 'Guest',
                       email: user?.email ?? '',
-                      avatarUrl:
-                          user?.avatarUrl != null && user!.avatarUrl != null
-                          ? '${dotenv.env['Backend_URL']!}/storage/avatar/${user.avatarUrl!}'
-                          : "",
+                      avatarUrl: _buildAvatarUrl(user?.avatarUrl),
                       // (user?.avatarUrl != null && user!.avatarUrl != null)
                       // ? dotenv.env['Backend_URL']! +'/storage/avatar/' +user.avatarUrl!: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCwjU4CsVdt2VEZUWSxL3Bn7cWu3vczpiZduN16hF5Tinakk5hqQY0APafoANhjTIWQt38yD1hmxuUZnRzF9SOQHQzDKapvXzD6W1wo4od6FEeyio-wAkRmRhBaf0fZGGNlIioVT-_Ec8SzErktYBEQ6QfN-2yhwqvc-qBhud5N7XXDPCj0Ogu9HpsXXsCXodL5l4BlK5N43TyexljZnqhyv3ZPMqTE1GpUCA6NT1j4XL48cGrdl58TipWQd-WuW-Wi_vhGXLwDg5A',
                       onEdit: () {
@@ -228,4 +225,26 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
+  /// Build avatar URL - returns Cloudinary URL directly or builds backend URL for filenames
+  String _buildAvatarUrl(String? avatarUrl) {
+    const defaultAvatar =
+        'https://ui-avatars.com/api/?name=User&background=4A90E2&color=fff&size=256';
+
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      return defaultAvatar;
+    }
+
+    // If already a full URL (Cloudinary or other), use it directly
+    if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+      return avatarUrl;
+    }
+
+    // Otherwise, it's a filename - build backend URL
+    final backend = dotenv.env['Backend_URL'] ?? '';
+    if (backend.isNotEmpty) {
+      return '$backend/storage/avatar/$avatarUrl';
+    }
+
+    return defaultAvatar;
+  }
 }

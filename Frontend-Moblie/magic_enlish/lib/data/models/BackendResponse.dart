@@ -16,9 +16,9 @@ class BackendResponse<T> {
     T Function(dynamic)? fromJsonT,
   ) {
     return BackendResponse<T>(
-      statusCode: json['statusCode'],
+      statusCode: json['statusCode'] ?? 0,
       error: json['error'],
-      message: json['message'],
+      message: json['message'] ?? '',
       data: json['data'] != null && fromJsonT != null
           ? fromJsonT(json['data'])
           : null,

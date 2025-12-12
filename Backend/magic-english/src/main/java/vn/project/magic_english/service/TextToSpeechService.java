@@ -109,23 +109,22 @@ public class TextToSpeechService {
      * Returns a URL that can be used directly in audio player
      * 
      * @param text Text to convert
-     * @return TTS audio URL
+     * @return TTS audio URL (relative path - client will prepend base URL)
      */
     public String generateWithResponsiveVoice(String text) {
         try {
             String encodedText = java.net.URLEncoder.encode(text, java.nio.charset.StandardCharsets.UTF_8);
 
-            // Use direct TTS endpoint with query parameter for proper handling of special
-            // characters
-            // Backend will use configured API key from application.yaml
-            String ttsUrl = "http://10.0.2.2:8080/api/audio/tts?text=" + encodedText;
+            // Return relative URL - client (Flutter app) will prepend the correct base URL
+            // based on environment (local vs production)
+            String ttsUrl = "/api/audio/tts?text=" + encodedText;
 
             log.info("Generated TTS endpoint URL for text length: {} characters", text.length());
             return ttsUrl;
 
         } catch (Exception e) {
             log.error("Error generating TTS URL: {}", e.getMessage());
-            // Final fallback
+            // Final fallback to external TTS service
             String encodedText = java.net.URLEncoder.encode(text, java.nio.charset.StandardCharsets.UTF_8);
             return "https://code.responsivevoice.org/getvoice.php?t=" + encodedText
                     + "&tl=en-GB&sv=&vn=&pitch=0.5&rate=0.4&vol=1";

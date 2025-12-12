@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/toeic/toeic_test.dart';
 import '../../data/services/toeic_service.dart';
+import 'package:magic_enlish/core/utils/backend_utils.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
 import 'toeic_result_screen.dart';
@@ -100,7 +101,9 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
 
       await _audioPlayer.stop();
 
-      String encodedUrl = audioUrl.replaceAll('+', '%20');
+      // Build full URL and encode properly
+      String fullUrl = BackendUtils.getFullUrl(audioUrl);
+      String encodedUrl = fullUrl.replaceAll('+', '%20');
       debugPrint('Fetching audio from: $encodedUrl');
 
       final uri = Uri.parse(encodedUrl);

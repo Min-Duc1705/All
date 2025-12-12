@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:magic_enlish/features/home/home_screen.dart';
 import 'package:magic_enlish/features/auth/register_screen.dart';
 import 'package:magic_enlish/data/services/auth_service.dart';
@@ -10,6 +9,7 @@ import 'package:magic_enlish/core/widgets/common/app_logo.dart';
 import 'package:magic_enlish/core/widgets/form/custom_text_field.dart';
 import 'package:magic_enlish/core/widgets/common/custom_button.dart';
 import 'package:magic_enlish/core/utils/snackbar_utils.dart';
+import 'package:magic_enlish/core/utils/backend_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:magic_enlish/providers/auth/auth_provider.dart';
 
@@ -228,7 +228,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {},
                         isOutlined: true,
                         icon: Image.network(
-                          '${dotenv.env['Backend_URL']}/storage/google.png',
+                          BackendUtils.getImageUrl(
+                            localPath: '/storage/google.png',
+                            cloudinaryUrl:
+                                'https://res.cloudinary.com/dekprzmna/image/upload/v1765509971/google_n7fual.png',
+                          ),
                           width: 24,
                           height: 24,
                           errorBuilder: (context, error, stackTrace) =>
