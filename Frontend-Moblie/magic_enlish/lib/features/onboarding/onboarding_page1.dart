@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:magic_enlish/core/utils/backend_utils.dart';
-import 'package:magic_enlish/core/constants/api_constants.dart';
 
 class OnboardingPage1 extends StatelessWidget {
   final VoidCallback onGetStarted;

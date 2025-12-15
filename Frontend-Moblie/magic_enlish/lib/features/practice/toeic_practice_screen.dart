@@ -284,14 +284,22 @@ class _TOEICPracticeScreenState extends State<TOEICPracticeScreen> {
             const SizedBox(height: 12),
 
             ...List.generate(3, (index) {
+              final difficulty = index == 0
+                  ? 'Easy'
+                  : index == 1
+                  ? 'Medium'
+                  : 'Hard';
+              final questions = index == 0
+                  ? 10
+                  : index == 1
+                  ? 15
+                  : 20;
               return _buildTestCard(
                 context,
                 testNumber: index + 1,
-                difficulty: index == 0
-                    ? 'Easy'
-                    : index == 1
-                    ? 'Medium'
-                    : 'Hard',
+                duration: '20 minutes',
+                questions: questions,
+                difficulty: difficulty,
                 primary: primary,
               );
             }),
@@ -455,6 +463,8 @@ class _TOEICPracticeScreenState extends State<TOEICPracticeScreen> {
   Widget _buildTestCard(
     BuildContext context, {
     required int testNumber,
+    required String duration,
+    required int questions,
     required String difficulty,
     required Color primary,
   }) {
@@ -472,11 +482,6 @@ class _TOEICPracticeScreenState extends State<TOEICPracticeScreen> {
       default:
         difficultyColor = Colors.grey;
     }
-
-    final selectedData = _sections.firstWhere(
-      (s) => s['name'] == _selectedSection,
-      orElse: () => _sections[0],
-    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -554,7 +559,7 @@ class _TOEICPracticeScreenState extends State<TOEICPracticeScreen> {
                     ),
                     const SizedBox(width: 3),
                     Text(
-                      selectedData['duration'] as String,
+                      '20 min',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         color: Colors.grey[600],
@@ -564,7 +569,7 @@ class _TOEICPracticeScreenState extends State<TOEICPracticeScreen> {
                     Icon(Icons.help_outline, size: 13, color: Colors.grey[600]),
                     const SizedBox(width: 3),
                     Text(
-                      '${selectedData['questions']} qs',
+                      '$questions qs',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         color: Colors.grey[600],

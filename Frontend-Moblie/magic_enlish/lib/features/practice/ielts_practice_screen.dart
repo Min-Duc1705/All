@@ -251,16 +251,22 @@ class _IELTSPracticeScreenState extends State<IELTSPracticeScreen> {
             const SizedBox(height: 12),
 
             ...List.generate(3, (index) {
+              final difficulty = index == 0
+                  ? 'Easy'
+                  : index == 1
+                  ? 'Medium'
+                  : 'Hard';
+              final questions = index == 0
+                  ? 10
+                  : index == 1
+                  ? 15
+                  : 20;
               return _buildTestCard(
                 context,
                 testNumber: index + 1,
-                duration: '60 minutes',
-                questions: 40,
-                difficulty: index == 0
-                    ? 'Easy'
-                    : index == 1
-                    ? 'Medium'
-                    : 'Hard',
+                duration: '20 minutes',
+                questions: questions,
+                difficulty: difficulty,
                 primary: primary,
               );
             }),
@@ -371,7 +377,7 @@ class _IELTSPracticeScreenState extends State<IELTSPracticeScreen> {
                     ),
                     const SizedBox(width: 3),
                     Text(
-                      '60 min',
+                      '20 min',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         color: Colors.grey[600],

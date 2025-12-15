@@ -69,7 +69,8 @@ class _VocabularyPageState extends State<VocabularyPage> {
               child: Row(
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () =>
+                        Navigator.pushReplacementNamed(context, '/home'),
                     child: const Icon(Icons.arrow_back, size: 28),
                   ),
                   const Spacer(),

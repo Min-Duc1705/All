@@ -37,7 +37,8 @@ class PracticeScreen extends StatelessWidget {
                 children: [
                   // Back Button
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () =>
+                        Navigator.pushReplacementNamed(context, '/home'),
                     child: Container(
                       width: 40,
                       height: 40,

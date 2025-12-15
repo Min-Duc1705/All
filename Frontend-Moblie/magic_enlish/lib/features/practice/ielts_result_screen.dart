@@ -310,15 +310,23 @@ class IELTSResultScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Listening Passage (if available)
+          // Passage (Reading or Listening)
           if (question.passage != null && question.passage!.isNotEmpty) ...[
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.05),
+                color: test.skill == 'Listening'
+                    ? Colors.blue.withOpacity(0.05)
+                    : test.skill == 'Writing'
+                    ? Colors.purple.withOpacity(0.05)
+                    : Colors.green.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: Colors.blue.withOpacity(0.2),
+                  color: test.skill == 'Listening'
+                      ? Colors.blue.withOpacity(0.2)
+                      : test.skill == 'Writing'
+                      ? Colors.purple.withOpacity(0.2)
+                      : Colors.green.withOpacity(0.2),
                   width: 1,
                 ),
               ),
@@ -327,14 +335,34 @@ class IELTSResultScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.headphones, size: 16, color: Colors.blue[700]),
+                      Icon(
+                        test.skill == 'Listening'
+                            ? Icons.headphones
+                            : test.skill == 'Writing'
+                            ? Icons.edit_note
+                            : Icons.menu_book,
+                        size: 16,
+                        color: test.skill == 'Listening'
+                            ? Colors.blue[700]
+                            : test.skill == 'Writing'
+                            ? Colors.purple[700]
+                            : Colors.green[700],
+                      ),
                       const SizedBox(width: 6),
                       Text(
-                        'Audio Transcript',
+                        test.skill == 'Listening'
+                            ? 'Audio Transcript'
+                            : test.skill == 'Writing'
+                            ? 'Writing Task'
+                            : 'Reading Passage',
                         style: GoogleFonts.lexend(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue[700],
+                          color: test.skill == 'Listening'
+                              ? Colors.blue[700]
+                              : test.skill == 'Writing'
+                              ? Colors.purple[700]
+                              : Colors.green[700],
                         ),
                       ),
                     ],
@@ -355,9 +383,13 @@ class IELTSResultScreen extends StatelessWidget {
             const SizedBox(height: 12),
           ],
 
-          // Question Text
+          // Question Text - Remove 'Options:...' for matching, remove instruction for flowchart
           Text(
-            questionResult.questionText,
+            question.questionType == 'matching'
+                ? questionResult.questionText.split('Options:')[0].trim()
+                : question.questionType == 'flowchart'
+                ? questionResult.questionText.split('Step 1:')[0].trim()
+                : questionResult.questionText,
             style: GoogleFonts.lexend(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -366,90 +398,609 @@ class IELTSResultScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Answers
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildAnswerRow(
-                  'Your Answer',
-                  questionResult.userAnswer,
-                  isCorrect ? correct : incorrect,
-                ),
-                if (!isCorrect) ...[
-                  const SizedBox(height: 8),
-                  _buildAnswerRow(
-                    'Correct Answer',
-                    questionResult.correctAnswer,
-                    correct,
+          // Answers/Essay Result
+          if (question.questionType == 'essay') ...[
+            // Writing Essay Result
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Your Essay
+                  Text(
+                    'Your Essay:',
+                    style: GoogleFonts.lexend(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
                   ),
-                ],
-                // Explanation
-                if (questionResult.explanation != null &&
-                    questionResult.explanation!.isNotEmpty) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.05),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: Colors.blue.withOpacity(0.2),
-                        width: 1,
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    constraints: const BoxConstraints(maxHeight: 150),
+                    child: SingleChildScrollView(
+                      child: Text(
+                        questionResult.userAnswer.isNotEmpty
+                            ? questionResult.userAnswer
+                            : '(No essay submitted)',
+                        style: GoogleFonts.lexend(
+                          fontSize: 12,
+                          color: const Color(0xFF333333),
+                          height: 1.6,
+                        ),
                       ),
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.lightbulb_outline,
-                          size: 18,
-                          color: Colors.blue[700],
+                  ),
+                  const SizedBox(height: 12),
+                  // AI Feedback
+                  if (questionResult.explanation != null &&
+                      questionResult.explanation!.isNotEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: isCorrect
+                            ? Colors.green.withOpacity(0.05)
+                            : Colors.orange.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isCorrect
+                              ? Colors.green.withOpacity(0.2)
+                              : Colors.orange.withOpacity(0.2),
+                          width: 1,
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.rate_review,
+                            size: 18,
+                            color: isCorrect
+                                ? Colors.green[700]
+                                : Colors.orange[700],
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'AI Feedback',
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: isCorrect
+                                        ? Colors.green[700]
+                                        : Colors.orange[700],
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  questionResult.explanation!,
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 12,
+                                    color: Colors.grey[700],
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ] else if (question.questionType == 'matching' ||
+              question.questionType == 'flowchart') ...[
+            // Matching/Flowchart Question Result - Show user answer vs correct answer
+            Builder(
+              builder: (context) {
+                // Parse user answers from format "0:A,1:B,2:C,3:D"
+                final userAnswerMap = <int, String>{};
+                if (questionResult.userAnswer.isNotEmpty) {
+                  final pairs = questionResult.userAnswer.split(',');
+                  for (var pair in pairs) {
+                    final parts = pair.split(':');
+                    if (parts.length == 2) {
+                      final index = int.tryParse(parts[0].trim());
+                      if (index != null) {
+                        userAnswerMap[index] = parts[1].trim();
+                      }
+                    }
+                  }
+                }
+
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header row
+                      Builder(
+                        builder: (context) {
+                          final isFlowchartQ =
+                              question.questionType == 'flowchart';
+                          return Row(
                             children: [
-                              Text(
-                                'Explanation',
-                                style: GoogleFonts.lexend(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue[700],
+                              const SizedBox(width: 34),
+                              Expanded(
+                                child: Text(
+                                  isFlowchartQ ? 'Step' : 'Item',
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey[600],
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                questionResult.explanation!,
-                                style: GoogleFonts.lexend(
-                                  fontSize: 12,
-                                  color: Colors.grey[700],
-                                  height: 1.5,
+                              SizedBox(
+                                width: isFlowchartQ ? 60 : 45,
+                                child: Text(
+                                  'You',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              SizedBox(
+                                width: isFlowchartQ ? 80 : 45,
+                                child: Text(
+                                  'Answer',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey[600],
+                                  ),
                                 ),
                               ),
                             ],
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      const Divider(height: 1),
+                      const SizedBox(height: 8),
+                      // Show each item's answer
+                      ...question.answers.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final answer = entry.value;
+                        final itemNum = index + 1;
+
+                        // For flowchart: compare text answers
+                        // For matching: compare letters
+                        bool isFlowchartType =
+                            question.questionType == 'flowchart';
+
+                        // Get correct answer
+                        String correctAnswer = isFlowchartType
+                            ? answer
+                                  .answerText // Flowchart: actual word
+                            : answer.answerOption; // Matching: letter A,B,C,D
+
+                        // Get user's answer
+                        String userAnswer = userAnswerMap[index] ?? '?';
+
+                        // Check if correct
+                        bool itemCorrect = isFlowchartType
+                            ? userAnswer.toLowerCase() ==
+                                  correctAnswer.toLowerCase()
+                            : userAnswer.toUpperCase() ==
+                                  correctAnswer.toUpperCase();
+
+                        // Item label
+                        String itemLabel = isFlowchartType
+                            ? 'Step $itemNum'
+                            : (answer.answerText.isNotEmpty
+                                  ? answer.answerText
+                                  : 'Item $itemNum');
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              // Item number
+                              Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: itemCorrect
+                                      ? correct.withOpacity(0.1)
+                                      : incorrect.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '$itemNum',
+                                    style: GoogleFonts.lexend(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: itemCorrect ? correct : incorrect,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              // Item label - show for both, with different text
+                              Expanded(
+                                child: Text(
+                                  itemLabel,
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 11,
+                                    color: Colors.grey[800],
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              // User's Answer
+                              if (isFlowchartType) ...[
+                                Container(
+                                  width: 60,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: itemCorrect
+                                        ? correct.withOpacity(0.1)
+                                        : incorrect.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: itemCorrect
+                                          ? correct.withOpacity(0.3)
+                                          : incorrect.withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    userAnswer,
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.lexend(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      color: itemCorrect ? correct : incorrect,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Container(
+                                  width: 80,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: correct.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: correct.withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    correctAnswer,
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.lexend(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      color: correct,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ),
+                              ] else ...[
+                                // Matching - fixed width columns
+                                Container(
+                                  width: 45,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: itemCorrect
+                                        ? correct.withOpacity(0.1)
+                                        : incorrect.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: itemCorrect
+                                          ? correct.withOpacity(0.3)
+                                          : incorrect.withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    userAnswer,
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.lexend(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: itemCorrect ? correct : incorrect,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Container(
+                                  width: 45,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: correct.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: correct.withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    correctAnswer,
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.lexend(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: correct,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        );
+                      }),
+                      // AI Explanation Section - Always show
+                      const SizedBox(height: 16),
+                      const Divider(height: 1),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: Colors.blue.withOpacity(0.2),
+                            width: 1,
                           ),
                         ),
-                      ],
-                    ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.lightbulb_outline,
+                                  size: 18,
+                                  color: Colors.blue[700],
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Explanation',
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            // Parse explanations from result (format: A:Item1:explanation|||B:Item2:explanation)
+                            ...(() {
+                              String? combinedExplanation =
+                                  questionResult.explanation;
+                              if (combinedExplanation == null ||
+                                  combinedExplanation.isEmpty) {
+                                return [
+                                  Text(
+                                    'No explanation available',
+                                    style: GoogleFonts.lexend(
+                                      fontSize: 11,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ];
+                              }
+
+                              // Split by ||| separator
+                              List<String> explanationParts =
+                                  combinedExplanation.split('|||');
+                              return explanationParts.map((part) {
+                                // Each part format: A:ItemName:Explanation
+                                List<String> segments = part.split(':');
+                                String optionLetter = segments.isNotEmpty
+                                    ? segments[0]
+                                    : '?';
+                                String itemName = segments.length > 1
+                                    ? segments[1]
+                                    : '';
+                                String explanation = segments.length > 2
+                                    ? segments.sublist(2).join(':')
+                                    : 'No explanation';
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        width: 24,
+                                        height: 24,
+                                        decoration: BoxDecoration(
+                                          color: correct.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            optionLetter,
+                                            style: GoogleFonts.lexend(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: correct,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              itemName,
+                                              style: GoogleFonts.lexend(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.grey[800],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              explanation,
+                                              style: GoogleFonts.lexend(
+                                                fontSize: 11,
+                                                color: Colors.grey[600],
+                                                height: 1.4,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList();
+                            })(),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ],
+                );
+              },
             ),
-          ),
+          ] else ...[
+            // MCQ Result
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildAnswerRow(
+                    'Your Answer',
+                    questionResult.userAnswer,
+                    isCorrect ? correct : incorrect,
+                  ),
+                  if (!isCorrect) ...[
+                    const SizedBox(height: 8),
+                    _buildAnswerRow(
+                      'Correct Answer',
+                      questionResult.correctAnswer,
+                      correct,
+                    ),
+                  ],
+                  // Explanation
+                  if (questionResult.explanation != null &&
+                      questionResult.explanation!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: Colors.blue.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.lightbulb_outline,
+                            size: 18,
+                            color: Colors.blue[700],
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Explanation',
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue[700],
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  questionResult.explanation!,
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 12,
+                                    color: Colors.grey[700],
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildAnswerRow(String label, String answer, Color color) {
-    return Row(
+    // Extract only the letter (A, B, C, D) if answer follows pattern like "A. text" or full text
+    String displayAnswer = answer;
+    if (answer.length >= 2 && answer[1] == '.') {
+      // Answer starts with "A.", "B.", etc - extract just the letter
+      displayAnswer = answer[0];
+    } else if (answer.length == 1 && RegExp(r'^[A-D]$').hasMatch(answer)) {
+      // Already just a letter
+      displayAnswer = answer;
+    }
+
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 4,
+      runSpacing: 4,
       children: [
         Text(
           '$label: ',
@@ -462,7 +1013,7 @@ class IELTSResultScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
-            answer,
+            displayAnswer,
             style: GoogleFonts.lexend(
               fontSize: 13,
               fontWeight: FontWeight.bold,

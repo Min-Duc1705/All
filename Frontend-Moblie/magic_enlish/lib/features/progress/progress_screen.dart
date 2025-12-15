@@ -7,6 +7,7 @@ import 'package:magic_enlish/core/widgets/profile/stats_grid.dart';
 import 'package:magic_enlish/core/utils/backend_utils.dart';
 import 'package:magic_enlish/data/models/progress/achievement.dart';
 import 'package:magic_enlish/providers/progress/progress_provider.dart';
+import 'package:magic_enlish/providers/auth/auth_provider.dart';
 import 'package:provider/provider.dart';
 
 class ProgressPage extends StatefulWidget {
@@ -44,14 +45,44 @@ class _ProgressPageState extends State<ProgressPage> {
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: Row(
                     children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.grey.shade200,
-                        ),
-                        child: const Icon(Icons.person, size: 24),
+                      Consumer<AuthProvider>(
+                        builder: (context, authProvider, child) {
+                          final user = authProvider.user;
+                          String? avatarUrl;
+                          if (user?.avatarUrl != null &&
+                              user!.avatarUrl!.isNotEmpty) {
+                            if (user.avatarUrl!.startsWith('http')) {
+                              avatarUrl = user.avatarUrl;
+                            } else {
+                              avatarUrl = BackendUtils.getFullUrl(
+                                '/storage/avatar/${user.avatarUrl}',
+                              );
+                            }
+                          }
+
+                          return Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey.shade200,
+                            ),
+                            child: ClipOval(
+                              child: avatarUrl != null
+                                  ? Image.network(
+                                      avatarUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Icon(
+                                                Icons.person,
+                                                size: 24,
+                                              ),
+                                    )
+                                  : const Icon(Icons.person, size: 24),
+                            ),
+                          );
+                        },
                       ),
                       Expanded(
                         child: Text(

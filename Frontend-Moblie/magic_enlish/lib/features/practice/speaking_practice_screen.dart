@@ -19,6 +19,8 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
   int _currentWordIndex = 0;
   bool _isRecording = false;
   bool _isAnalyzing = false;
+  bool _shouldKeepListening = false; // Flag to control continuous listening
+  bool _isRestarting = false; // Flag to prevent multiple concurrent restarts
   List<Vocabulary> _practiceWords = [];
 
   // Speech recognition - recreate instance for each session
@@ -105,29 +107,46 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
     _speechAvailable = await _speech.initialize(
       onStatus: (status) {
         debugPrint('Speech status: $status');
+        // CONTINUOUS MODE: Auto-restart if speech auto-stops but user hasn't pressed Stop
         if (status == 'done' || status == 'notListening') {
-          if (mounted && _isRecording) {
+          if (mounted && _shouldKeepListening) {
+            // Auto-restart listening - user hasn't pressed Stop yet
+            debugPrint('Auto-restarting speech recognition...');
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (mounted && _shouldKeepListening) {
+                _restartListening();
+              }
+            });
+          } else if (mounted && _isRecording) {
+            // User pressed Stop or not listening anymore
             setState(() => _isRecording = false);
-            if (_transcribedText.isNotEmpty) {
-              _analyzeWithAI();
-            } else if (status == 'done') {
-              // Nếu done nhưng không có text, có thể là timeout
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'No speech detected. Please speak clearly and try again.',
-                  ),
-                  backgroundColor: Colors.orange,
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            }
           }
         }
       },
       onError: (error) {
         debugPrint('Speech error: ${error.errorMsg}');
-        if (mounted) {
+
+        // error_no_match and error_speech_timeout are expected during silence
+        // Don't restart on these - the done/notListening status will handle restart
+        final isExpectedError =
+            error.errorMsg == 'error_no_match' ||
+            error.errorMsg == 'error_speech_timeout';
+
+        if (isExpectedError && _shouldKeepListening) {
+          // Ignore expected errors during continuous listening - restart will be handled by status callback
+          debugPrint('Ignoring expected error during continuous listening');
+          return;
+        }
+
+        if (mounted && _shouldKeepListening && !isExpectedError) {
+          // Auto-restart on unexpected errors only
+          debugPrint('Restarting after unexpected error...');
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted && _shouldKeepListening) {
+              _restartListening();
+            }
+          });
+        } else if (mounted && !_shouldKeepListening) {
           setState(() => _isRecording = false);
 
           String userMessage;
@@ -394,28 +413,45 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
       final available = await _speech.initialize(
         onStatus: (status) {
           debugPrint('Speech status: $status');
+          // CONTINUOUS MODE: Auto-restart if speech auto-stops but user hasn't pressed Stop
           if (status == 'done' || status == 'notListening') {
             _lastRecordingEndTime = DateTime.now();
-            if (mounted && _isRecording) {
+            if (mounted && _shouldKeepListening) {
+              // Auto-restart listening - user hasn't pressed Stop yet
+              debugPrint('Auto-restarting speech recognition...');
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (mounted && _shouldKeepListening) {
+                  _restartListening();
+                }
+              });
+            } else {
+              // User pressed Stop or not listening anymore
               setState(() => _isRecording = false);
-              if (_transcribedText.isNotEmpty) {
-                _analyzeWithAI();
-              } else if (status == 'done') {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('No speech detected. Please speak clearly.'),
-                    backgroundColor: Colors.orange,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              }
             }
           }
         },
         onError: (error) {
           debugPrint('Speech error: ${error.errorMsg}');
           _lastRecordingEndTime = DateTime.now();
-          if (mounted) {
+
+          // error_no_match and error_speech_timeout are expected during silence
+          final isExpectedError =
+              error.errorMsg == 'error_no_match' ||
+              error.errorMsg == 'error_speech_timeout';
+
+          if (isExpectedError && _shouldKeepListening) {
+            debugPrint('Ignoring expected error during continuous listening');
+            return;
+          }
+
+          if (mounted && _shouldKeepListening && !isExpectedError) {
+            debugPrint('Restarting after unexpected error...');
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted && _shouldKeepListening) {
+                _restartListening();
+              }
+            });
+          } else if (mounted && !_shouldKeepListening) {
             setState(() => _isRecording = false);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -431,7 +467,8 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
         throw Exception('Speech recognition not available');
       }
 
-      // Set recording state
+      // Set recording state and enable continuous listening
+      _shouldKeepListening = true;
       setState(() {
         _isRecording = true;
         _transcribedText = '';
@@ -448,8 +485,10 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
           }
         },
         localeId: _selectedLocaleId,
-        listenFor: const Duration(seconds: 30),
-        pauseFor: const Duration(seconds: 5),
+        listenFor: const Duration(seconds: 60), // Listen for up to 60 seconds
+        pauseFor: const Duration(
+          seconds: 10,
+        ), // Wait 10 seconds of silence before stopping
         partialResults: true,
         cancelOnError: false,
         listenMode: stt.ListenMode.dictation,
@@ -459,6 +498,7 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
     } catch (e) {
       debugPrint('Error starting recording: $e');
       _lastRecordingEndTime = DateTime.now();
+      _shouldKeepListening = false;
 
       if (mounted) {
         setState(() => _isRecording = false);
@@ -473,10 +513,78 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
     }
   }
 
+  /// Restart listening without reinitializing speech (for continuous mode)
+  Future<void> _restartListening() async {
+    // Prevent multiple concurrent restarts
+    if (_isRestarting) {
+      debugPrint('Already restarting, skipping...');
+      return;
+    }
+
+    if (!_shouldKeepListening || !mounted) {
+      debugPrint(
+        'Skipping restart - shouldKeepListening=$_shouldKeepListening, mounted=$mounted',
+      );
+      return;
+    }
+
+    _isRestarting = true;
+
+    try {
+      debugPrint('Attempting to restart speech listening...');
+
+      // Wait longer for the previous session to fully close
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (!_shouldKeepListening || !mounted) {
+        _isRestarting = false;
+        return;
+      }
+
+      await _speech.listen(
+        onResult: (result) {
+          if (mounted) {
+            setState(() {
+              _transcribedText = result.recognizedWords;
+            });
+            debugPrint('Speech recognized: ${result.recognizedWords}');
+          }
+        },
+        localeId: _selectedLocaleId,
+        listenFor: const Duration(seconds: 60), // Listen for up to 60 seconds
+        pauseFor: const Duration(
+          seconds: 10,
+        ), // Wait 10 seconds of silence before stopping
+        partialResults: true,
+        cancelOnError: false,
+        listenMode: stt.ListenMode.dictation,
+      );
+      debugPrint('Speech restarted successfully!');
+    } catch (e) {
+      debugPrint('Error restarting speech: $e');
+      // Try again after a longer delay if still should keep listening
+      if (_shouldKeepListening && mounted) {
+        debugPrint('Will retry restart in 1 second...');
+        await Future.delayed(const Duration(seconds: 1));
+        if (_shouldKeepListening && mounted) {
+          _isRestarting = false; // Reset before retry
+          _restartListening(); // Retry
+          return;
+        }
+      }
+    }
+
+    _isRestarting = false;
+  }
+
   void _stopRecording() async {
+    // IMPORTANT: Set flag FIRST to prevent auto-restart
+    _shouldKeepListening = false;
+
     await _speech.stop();
     setState(() => _isRecording = false);
 
+    // MANUAL MODE: This is the ONLY place that triggers AI grading
     if (_transcribedText.isNotEmpty) {
       _analyzeWithAI();
     } else {
@@ -683,7 +791,7 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
                       children: [
                         Icon(
                           Icons.mic,
-                          color: const Color(0xFF9B59B6),
+                          color: const Color(0xFFF97316), // Orange
                           size: 18,
                         ),
                         const SizedBox(width: 8),
@@ -699,7 +807,7 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
                             feedback.transcribedText,
                             style: GoogleFonts.plusJakartaSans(
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF9B59B6),
+                              color: const Color(0xFFF97316), // Orange
                             ),
                           ),
                         ),
@@ -783,18 +891,22 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              setState(() => _transcribedText = '');
+              setState(() {
+                _transcribedText = '';
+              });
             },
             child: Text('Try Again', style: GoogleFonts.plusJakartaSans()),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              setState(() => _transcribedText = '');
+              setState(() {
+                _transcribedText = '';
+              });
               _nextWord();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF9B59B6),
+              backgroundColor: const Color(0xFFF97316), // Orange
             ),
             child: Text(
               'Next Word',
@@ -887,14 +999,18 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              setState(() => _transcribedText = '');
+              setState(() {
+                _transcribedText = '';
+              });
             },
             child: Text('Try Again', style: GoogleFonts.plusJakartaSans()),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              setState(() => _transcribedText = '');
+              setState(() {
+                _transcribedText = '';
+              });
               _nextWord();
             },
             style: ElevatedButton.styleFrom(
@@ -967,7 +1083,7 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF9B59B6),
+                color: const Color(0xFFF97316), // Orange
               ),
             ),
             const SizedBox(height: 8),
@@ -994,7 +1110,7 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
               _loadPracticeWords();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF9B59B6),
+              backgroundColor: const Color(0xFFF97316), // Orange
             ),
             child: Text(
               'Practice Again',
@@ -1048,17 +1164,20 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const practiceColor = Color(0xFF9B59B6);
+    const practiceColor = Color(0xFFF97316); // Orange - accent color only
+    const neutral = Color(0xFFE0E0E0);
 
     if (_practiceWords.isEmpty) {
       return Scaffold(
+        backgroundColor: const Color(0xFFF9F9F9),
         appBar: AppBar(
           title: Text(
             'Speaking Practice',
             style: GoogleFonts.plusJakartaSans(),
           ),
-          backgroundColor: practiceColor,
-          foregroundColor: Colors.white,
+          backgroundColor: const Color(0xFFF9F9F9),
+          foregroundColor: const Color(0xFF333333),
+          elevation: 0,
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -1067,257 +1186,333 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> {
     final currentWord = _practiceWords[_currentWordIndex];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Speaking Practice', style: GoogleFonts.plusJakartaSans()),
-        backgroundColor: practiceColor,
-        foregroundColor: Colors.white,
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Text(
-                '${_currentWordIndex + 1}/${_practiceWords.length}',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+      backgroundColor: const Color(0xFFF9F9F9),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Custom Top Bar (quiz style)
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9F9F9),
+                border: Border(
+                  bottom: BorderSide(color: neutral.withOpacity(0.3), width: 1),
                 ),
               ),
-            ),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Progress
-            LinearProgressIndicator(
-              value: (_currentWordIndex + 1) / _practiceWords.length,
-              backgroundColor: Colors.grey[300],
-              color: practiceColor,
-              minHeight: 8,
-            ),
-
-            const SizedBox(height: 20),
-
-            // Instruction
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: practiceColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  Icon(Icons.mic, color: practiceColor),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 35,
+                      height: 35,
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.close,
+                        size: 28,
+                        color: Color(0xFF333333),
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Speaking Practice',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF333333),
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: practiceColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${_currentWordIndex + 1}/${_practiceWords.length}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: practiceColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Main Content
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Progress Bar (quiz style)
+                    Column(
                       children: [
-                        Text(
-                          'Read the word aloud',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          'AI will analyze your pronunciation',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
+                        Stack(
+                          children: [
+                            Container(
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: neutral.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(9999),
+                              ),
+                            ),
+                            FractionallySizedBox(
+                              alignment: Alignment.centerLeft,
+                              widthFactor:
+                                  (_currentWordIndex + 1) /
+                                  _practiceWords.length,
+                              child: Container(
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: practiceColor,
+                                  borderRadius: BorderRadius.circular(9999),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-            ),
 
-            const Spacer(),
+                    const SizedBox(height: 20),
 
-            // Word Display
-            Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: practiceColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    currentWord.word,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      color: practiceColor,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '/${currentWord.ipa}/',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 20,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    currentWord.meaning,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Listen to pronunciation button
-                  if (currentWord.audioUrl.isNotEmpty)
-                    OutlinedButton.icon(
-                      onPressed: _isPlayingAudio ? null : _playWordAudio,
-                      icon: Icon(
-                        _isPlayingAudio
-                            ? Icons.volume_up
-                            : Icons.volume_up_outlined,
-                        size: 18,
+                    // Instruction
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: practiceColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      label: Text(
-                        _isPlayingAudio ? 'Playing...' : 'Listen',
-                        style: GoogleFonts.plusJakartaSans(),
+                      child: Row(
+                        children: [
+                          Icon(Icons.mic, color: practiceColor),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Read the word aloud',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  'AI will analyze your pronunciation',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
+                    ),
+
+                    const Spacer(),
+
+                    // Word Display
+                    Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: practiceColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            currentWord.word,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 48,
+                              fontWeight: FontWeight.bold,
+                              color: practiceColor,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            '/${currentWord.ipa}/',
+                            style: GoogleFonts.notoSans(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            currentWord.meaning,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Listen to pronunciation button
+                          if (currentWord.audioUrl.isNotEmpty)
+                            OutlinedButton.icon(
+                              onPressed: _isPlayingAudio
+                                  ? null
+                                  : _playWordAudio,
+                              icon: Icon(
+                                _isPlayingAudio
+                                    ? Icons.volume_up
+                                    : Icons.volume_up_outlined,
+                                size: 18,
+                              ),
+                              label: Text(
+                                _isPlayingAudio ? 'Playing...' : 'Listen',
+                                style: GoogleFonts.plusJakartaSans(),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: practiceColor,
+                                side: BorderSide(color: practiceColor),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    const Spacer(),
+
+                    // Transcribed text display
+                    if (_transcribedText.isNotEmpty || _isRecording)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              _isRecording ? Icons.mic : Icons.text_fields,
+                              color: _isRecording ? Colors.red : practiceColor,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _isRecording && _transcribedText.isEmpty
+                                    ? 'Listening...'
+                                    : _transcribedText.isEmpty
+                                    ? 'Speak now...'
+                                    : _transcribedText,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  color: _transcribedText.isEmpty
+                                      ? Colors.grey[500]
+                                      : Colors.grey[800],
+                                  fontStyle: _transcribedText.isEmpty
+                                      ? FontStyle.italic
+                                      : FontStyle.normal,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Record Button
+                    Center(
+                      child: GestureDetector(
+                        onTap: _isAnalyzing ? null : _toggleRecording,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: _isRecording ? 100 : 120,
+                          height: _isRecording ? 100 : 120,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: _isAnalyzing
+                                  ? [Colors.grey, Colors.grey.shade600]
+                                  : _isRecording
+                                  ? [Colors.red, Colors.red.shade700]
+                                  : [
+                                      practiceColor,
+                                      practiceColor.withOpacity(0.7),
+                                    ],
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    (_isRecording ? Colors.red : practiceColor)
+                                        .withOpacity(0.4),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: _isAnalyzing
+                              ? const Padding(
+                                  padding: EdgeInsets.all(30),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : Icon(
+                                  _isRecording ? Icons.stop : Icons.mic,
+                                  color: Colors.white,
+                                  size: _isRecording ? 48 : 56,
+                                ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Text(
+                      _isAnalyzing
+                          ? 'Analyzing pronunciation...'
+                          : _isRecording
+                          ? 'Recording... Tap to stop'
+                          : 'Tap to record',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+
+                    const Spacer(),
+
+                    // Skip Button
+                    OutlinedButton(
+                      onPressed: _nextWord,
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: practiceColor,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         side: BorderSide(color: practiceColor),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                    ),
-                ],
-              ),
-            ),
-
-            const Spacer(),
-
-            // Transcribed text display
-            if (_transcribedText.isNotEmpty || _isRecording)
-              Container(
-                padding: const EdgeInsets.all(12),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      _isRecording ? Icons.mic : Icons.text_fields,
-                      color: _isRecording ? Colors.red : practiceColor,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
                       child: Text(
-                        _isRecording && _transcribedText.isEmpty
-                            ? 'Listening...'
-                            : _transcribedText.isEmpty
-                            ? 'Speak now...'
-                            : _transcribedText,
+                        'Skip',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          color: _transcribedText.isEmpty
-                              ? Colors.grey[500]
-                              : Colors.grey[800],
-                          fontStyle: _transcribedText.isEmpty
-                              ? FontStyle.italic
-                              : FontStyle.normal,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: practiceColor,
                         ),
                       ),
                     ),
                   ],
-                ),
-              ),
-
-            // Record Button
-            Center(
-              child: GestureDetector(
-                onTap: _isAnalyzing ? null : _toggleRecording,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: _isRecording ? 100 : 120,
-                  height: _isRecording ? 100 : 120,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: _isAnalyzing
-                          ? [Colors.grey, Colors.grey.shade600]
-                          : _isRecording
-                          ? [Colors.red, Colors.red.shade700]
-                          : [practiceColor, practiceColor.withOpacity(0.7)],
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: (_isRecording ? Colors.red : practiceColor)
-                            .withOpacity(0.4),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: _isAnalyzing
-                      ? const Padding(
-                          padding: EdgeInsets.all(30),
-                          child: CircularProgressIndicator(
-                            strokeWidth: 3,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                      : Icon(
-                          _isRecording ? Icons.stop : Icons.mic,
-                          color: Colors.white,
-                          size: _isRecording ? 48 : 56,
-                        ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            Text(
-              _isAnalyzing
-                  ? 'Analyzing pronunciation...'
-                  : _isRecording
-                  ? 'Recording... Tap to stop'
-                  : 'Tap to record',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
-              textAlign: TextAlign.center,
-            ),
-
-            const Spacer(),
-
-            // Skip Button
-            OutlinedButton(
-              onPressed: _nextWord,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                side: BorderSide(color: practiceColor),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'Skip',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: practiceColor,
                 ),
               ),
             ),

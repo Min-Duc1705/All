@@ -294,7 +294,8 @@ class _GrammarCheckerPageState extends State<GrammarCheckerPage> {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.arrow_back, size: 24),
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () =>
+                              Navigator.pushReplacementNamed(context, '/home'),
                           padding: EdgeInsets.zero,
                         ),
                         Expanded(

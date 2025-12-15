@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:magic_enlish/data/models/ielts/ielts_test.dart';
 import 'package:magic_enlish/data/services/ielts_service.dart';
 import 'package:magic_enlish/features/practice/ielts_result_screen.dart';
+import 'package:magic_enlish/features/practice/widgets/ielts_chart_widget.dart';
+import 'package:magic_enlish/core/widgets/ielts_questions/ielts_questions.dart';
 import 'package:magic_enlish/core/utils/backend_utils.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
@@ -26,9 +28,23 @@ class _IELTSTakeTestScreenState extends State<IELTSTakeTestScreen> {
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   int _currentQuestionIndex = 0;
-  final Map<int, int?> _selectedAnswers = {}; // questionId -> answerId
+  final Map<int, Set<int>> _selectedAnswers =
+      {}; // questionId -> Set of answer IDs (for MCQ multi-select)
+  final Map<int, String> _essayAnswers =
+      {}; // questionId -> essay text (for Writing)
+  final TextEditingController _essayController = TextEditingController();
   bool _isSubmitting = false;
   final int _startTime = DateTime.now().millisecondsSinceEpoch;
+
+  // Answers for different question types
+  final Map<int, Map<int, String>> _formAnswers =
+      {}; // questionId -> {blankIndex -> answer}
+  final Map<int, Map<int, String>> _matchingAnswers =
+      {}; // questionId -> {itemIndex -> option}
+  final Map<int, Map<int, String>> _sentenceAnswers =
+      {}; // questionId -> {sentenceIndex -> answer}
+  final Map<int, Map<int, String>> _flowchartAnswers =
+      {}; // questionId -> {stepIndex -> answer}
 
   // Audio player state
   bool _isPlaying = false;
@@ -66,6 +82,7 @@ class _IELTSTakeTestScreenState extends State<IELTSTakeTestScreen> {
     _audioPlayer.stop();
     _audioPlayer.release();
     _audioPlayer.dispose();
+    _essayController.dispose();
     super.dispose();
   }
 
@@ -163,13 +180,271 @@ class _IELTSTakeTestScreenState extends State<IELTSTakeTestScreen> {
     return '$minutes:$seconds';
   }
 
+  int _getWordCount(String text) {
+    if (text.trim().isEmpty) return 0;
+    return text.trim().split(RegExp(r'\s+')).length;
+  }
+
+  /// Count total answered questions across all question types
+  int _getAnsweredCount() {
+    int count = 0;
+
+    for (var question in widget.test.questions) {
+      final questionType = question.questionType ?? 'multiple_choice';
+      final questionId = question.id;
+
+      switch (questionType) {
+        case 'form_completion':
+          // Check if any form field answered for this question
+          if (_formAnswers.containsKey(questionId) &&
+              _formAnswers[questionId]!.values.any((v) => v.isNotEmpty)) {
+            count++;
+          }
+          break;
+        case 'matching':
+          if (_matchingAnswers.containsKey(questionId) &&
+              _matchingAnswers[questionId]!.isNotEmpty) {
+            count++;
+          }
+          break;
+        case 'sentence_completion':
+          if (_sentenceAnswers.containsKey(questionId) &&
+              _sentenceAnswers[questionId]!.values.any((v) => v.isNotEmpty)) {
+            count++;
+          }
+          break;
+        case 'flowchart':
+          if (_flowchartAnswers.containsKey(questionId) &&
+              _flowchartAnswers[questionId]!.values.any((v) => v.isNotEmpty)) {
+            count++;
+          }
+          break;
+        case 'multiple_choice':
+        default:
+          if (_selectedAnswers.containsKey(questionId) &&
+              _selectedAnswers[questionId]!.isNotEmpty) {
+            count++;
+          }
+          break;
+      }
+    }
+
+    // Also count essay if writing test
+    if (widget.test.skill == 'Writing' &&
+        _essayController.text.trim().isNotEmpty) {
+      count = 1; // Writing has only 1 question
+    }
+
+    return count;
+  }
+
+  /// Build appropriate widget based on question type
+  Widget _buildQuestionWidget(IELTSQuestion question, Color primary) {
+    final questionType = question.questionType ?? 'multiple_choice';
+
+    switch (questionType) {
+      case 'form_completion':
+        // Initialize form answers if not exists
+        _formAnswers.putIfAbsent(question.id, () => {});
+        // For form completion: questionText is the field label (e.g., "Customer name:")
+        // User types answer, correct answer is hidden (used only for grading)
+        return FormCompletionWidget(
+          formTitle: 'Complete the form based on what you hear:',
+          blanks: [question.questionText], // Field label from question
+          userAnswers: _formAnswers[question.id] ?? {},
+          onAnswerChanged: (index, value) {
+            setState(() {
+              _formAnswers[question.id]![index] = value;
+            });
+          },
+        );
+
+      case 'matching':
+        _matchingAnswers.putIfAbsent(question.id, () => {});
+        // IELTS Matching format:
+        // - Options (lettered A-D): Answer choices
+        // - Items: Dynamic from AI (Student 1, Monday, Library, etc.)
+
+        // Items: Use answerText from AI which contains the item name
+        final items = question.answers.asMap().entries.map((e) {
+          // answerText contains item name (e.g., "Student 1", "Monday", "Library")
+          String itemText = e.value.answerText.isNotEmpty
+              ? e.value.answerText
+              : 'Item ${e.key + 1}';
+          return MatchItem(id: e.value.id, text: itemText);
+        }).toList();
+
+        // Parse options from questionText (after "Options:")
+        // Format: "Match each... Options: 1. Lack of experience, 2. Time pressure..."
+        final optionLabels = <String>[];
+        final questionParts = question.questionText.split('Options:');
+        if (questionParts.length > 1) {
+          final optionsPart = questionParts[1].trim();
+          final optionsList = optionsPart.split(RegExp(r',\s*'));
+          for (var opt in optionsList) {
+            final trimmed = opt.trim();
+            if (trimmed.isNotEmpty) {
+              optionLabels.add(trimmed);
+            }
+          }
+        }
+
+        // Fallback: use answerOption + answerText as options
+        if (optionLabels.isEmpty) {
+          final seenOptions = <String>{};
+          for (var a in question.answers) {
+            if (!seenOptions.contains(a.answerOption)) {
+              seenOptions.add(a.answerOption);
+              if (a.answerText.isNotEmpty) {
+                optionLabels.add('${a.answerOption}. ${a.answerText}');
+              } else {
+                optionLabels.add(a.answerOption);
+              }
+            }
+          }
+          optionLabels.sort();
+        }
+
+        // Get instruction text only (before "Options:")
+        final instructionText = questionParts[0].trim();
+
+        return MatchingWidget(
+          questionText: instructionText.isNotEmpty
+              ? instructionText
+              : question.questionText,
+          options: optionLabels.isEmpty
+              ? ['1. Option A', '2. Option B', '3. Option C', '4. Option D']
+              : optionLabels,
+          items: items,
+          selectedMatches: _matchingAnswers[question.id] ?? {},
+          onMatchSelected: (index, value) {
+            setState(() {
+              _matchingAnswers[question.id]![index] = value;
+            });
+          },
+        );
+
+      case 'sentence_completion':
+        _sentenceAnswers.putIfAbsent(question.id, () => {});
+        // Parse sentence with blank from questionText
+        final parts = question.questionText.split('________');
+        final sentences = [
+          SentenceBlank(
+            id: question.id,
+            textBefore: parts.isNotEmpty ? parts[0] : question.questionText,
+            textAfter: parts.length > 1 ? parts[1] : '',
+          ),
+        ];
+        return SentenceCompletionWidget(
+          questionText: 'Complete the sentence:',
+          questionNumber: question.questionNumber,
+          sentences: sentences,
+          userAnswers: _sentenceAnswers[question.id] ?? {},
+          onAnswerChanged: (index, value) {
+            setState(() {
+              _sentenceAnswers[question.id]![index] = value;
+            });
+          },
+        );
+
+      case 'flowchart':
+        _flowchartAnswers.putIfAbsent(question.id, () => {});
+
+        // Extract instruction (first line before "Step 1:")
+        String instruction = 'Complete the flow-chart:';
+        String stepsText = question.questionText;
+
+        // Check if there's a header/instruction before the steps
+        final step1Index = question.questionText.indexOf('Step 1:');
+        if (step1Index > 0) {
+          instruction = question.questionText.substring(0, step1Index).trim();
+          stepsText = question.questionText.substring(step1Index);
+        }
+
+        // Parse steps from remaining text (split by →)
+        final stepTexts = stepsText
+            .split('→')
+            .where((s) => s.trim().isNotEmpty)
+            .toList();
+        int blankIndex = 0; // Track blank index for answer mapping
+        final steps = stepTexts.asMap().entries.map((e) {
+          final hasBlank = e.value.contains('________');
+          if (hasBlank) {
+            final parts = e.value.split('________');
+            final currentBlankIndex = blankIndex++;
+            return FlowchartStep(
+              stepNumber:
+                  currentBlankIndex + 1, // Use blank number, not step number
+              text: e.value,
+              hasBlank: true,
+              textBefore: parts[0].trim(),
+              textAfter: parts.length > 1 ? parts[1].trim() : '',
+            );
+          }
+          return FlowchartStep(
+            stepNumber: e.key + 1,
+            text: e.value.trim(),
+            hasBlank: false,
+          );
+        }).toList();
+
+        return FlowchartWidget(
+          questionText: instruction,
+          questionNumber: question.questionNumber,
+          steps: steps,
+          userAnswers: _flowchartAnswers[question.id] ?? {},
+          onAnswerChanged: (index, value) {
+            setState(() {
+              _flowchartAnswers[question.id]![index] = value;
+            });
+          },
+        );
+
+      case 'multiple_choice':
+      default:
+        // Default MCQ widget
+        // Get set of selected indices from answer IDs
+        final selectedAnswerIds = _selectedAnswers[question.id] ?? <int>{};
+        final selectedIndicesSet = <int>{};
+        for (int i = 0; i < question.answers.length; i++) {
+          if (selectedAnswerIds.contains(question.answers[i].id)) {
+            selectedIndicesSet.add(i);
+          }
+        }
+
+        return MultipleChoiceWidget(
+          questionText: question.questionText,
+          options: question.answers
+              .map(
+                (a) => AnswerOption(
+                  label: a.answerOption,
+                  text: a.answerText,
+                  id: a.id,
+                ),
+              )
+              .toList(),
+          selectedIndices: selectedIndicesSet,
+          onOptionToggled: (index) {
+            setState(() {
+              final answerId = question.answers[index].id;
+              _selectedAnswers.putIfAbsent(question.id, () => <int>{});
+              if (_selectedAnswers[question.id]!.contains(answerId)) {
+                _selectedAnswers[question.id]!.remove(answerId);
+              } else {
+                _selectedAnswers[question.id]!.add(answerId);
+              }
+            });
+          },
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     const primary = Color(0xFF4A90E2);
     const neutral = Color(0xFFE0E0E0);
 
     final currentQuestion = widget.test.questions[_currentQuestionIndex];
-    final selectedAnswerId = _selectedAnswers[currentQuestion.id];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
@@ -249,7 +524,7 @@ class _IELTSTakeTestScreenState extends State<IELTSTakeTestScreen> {
                               ),
                             ),
                             Text(
-                              '${_selectedAnswers.length}/${widget.test.questions.length} answered',
+                              '${_getAnsweredCount()}/${widget.test.questions.length} answered',
                               style: GoogleFonts.lexend(
                                 fontSize: 12,
                                 color: Colors.grey[600],
@@ -521,115 +796,296 @@ class _IELTSTakeTestScreenState extends State<IELTSTakeTestScreen> {
                       const SizedBox(height: 24),
                     ],
 
-                    // Question
-                    Text(
-                      currentQuestion.questionText,
-                      style: GoogleFonts.lexend(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF333333),
-                        height: 1.4,
+                    // Question - only show for multiple_choice (other widgets show it internally)
+                    if ((currentQuestion.questionType ?? 'multiple_choice') ==
+                        'multiple_choice') ...[
+                      Text(
+                        currentQuestion.questionText,
+                        style: GoogleFonts.lexend(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF333333),
+                          height: 1.4,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 24),
+                    ],
 
-                    const SizedBox(height: 24),
+                    // Conditional: Essay input for Writing OR MCQ options for other skills
+                    if (currentQuestion.questionType == 'essay') ...[
+                      // Task 1: Display Chart if available
+                      if (currentQuestion.chartData != null) ...[
+                        IELTSChartWidget(chartData: currentQuestion.chartData!),
+                        const SizedBox(height: 16),
+                      ],
 
-                    // Answer Options
-                    ...currentQuestion.answers.map((answer) {
-                      final isSelected = selectedAnswerId == answer.id;
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              _selectedAnswers[currentQuestion.id] = answer.id;
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? primary.withOpacity(0.1)
-                                  : Colors.transparent,
-                              border: Border.all(
-                                color: isSelected
-                                    ? primary
-                                    : neutral.withOpacity(0.8),
-                                width: isSelected ? 2 : 1,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
+                      // Writing Instructions (Separate Card)
+                      if (currentQuestion.passage != null &&
+                          currentQuestion.passage!.isNotEmpty) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: primary.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: primary.withOpacity(0.2),
+                              width: 1,
                             ),
-                            child: Row(
-                              children: [
-                                // Radio Button
-                                Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: isSelected ? primary : neutral,
-                                      width: 2,
-                                    ),
-                                    color: isSelected
-                                        ? primary
-                                        : Colors.transparent,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline,
+                                    size: 18,
+                                    color: primary,
                                   ),
-                                  child: isSelected
-                                      ? Center(
-                                          child: Container(
-                                            width: 8,
-                                            height: 8,
-                                            decoration: const BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        )
-                                      : null,
-                                ),
-                                const SizedBox(width: 16),
-                                // Answer Option
-                                Container(
-                                  width: 30,
-                                  height: 30,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? primary
-                                        : Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    answer.answerOption,
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Instructions',
                                     style: GoogleFonts.lexend(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : Colors.grey[700],
+                                      color: primary,
                                     ),
                                   ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                currentQuestion.passage!.replaceAll(
+                                  '\\n',
+                                  '\n',
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    answer.answerText,
-                                    style: GoogleFonts.lexend(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
-                                      color: const Color(0xFF333333),
-                                    ),
-                                  ),
+                                style: GoogleFonts.lexend(
+                                  fontSize: 13,
+                                  color: Colors.grey[700],
+                                  height: 1.6,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
-                      );
-                    }),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Writing Essay Input (Separate Card)
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Header
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(12),
+                                  topRight: Radius.circular(12),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.edit_note,
+                                    size: 20,
+                                    color: Colors.grey[700],
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Your Essay',
+                                    style: GoogleFonts.lexend(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Essay Text Area
+                            Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: TextField(
+                                controller: _essayController,
+                                maxLines: 15,
+                                onChanged: (value) {
+                                  _essayAnswers[currentQuestion.id] = value;
+                                  setState(() {}); // Update word count
+                                },
+                                decoration: InputDecoration(
+                                  hintText:
+                                      'Start writing your essay here...\n\nMinimum ${currentQuestion.minWords ?? 150} words required.',
+                                  hintStyle: GoogleFonts.lexend(
+                                    fontSize: 14,
+                                    color: Colors.grey[400],
+                                  ),
+                                  border: InputBorder.none,
+                                ),
+                                style: GoogleFonts.lexend(
+                                  fontSize: 14,
+                                  height: 1.7,
+                                  color: const Color(0xFF333333),
+                                ),
+                              ),
+                            ),
+                            // Word Counter Footer
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    _getWordCount(_essayController.text) >=
+                                        (currentQuestion.minWords ?? 150)
+                                    ? Colors.green.withOpacity(0.1)
+                                    : Colors.orange.withOpacity(0.1),
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(12),
+                                  bottomRight: Radius.circular(12),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        _getWordCount(_essayController.text) >=
+                                                (currentQuestion.minWords ??
+                                                    150)
+                                            ? Icons.check_circle
+                                            : Icons.warning_amber_rounded,
+                                        size: 18,
+                                        color:
+                                            _getWordCount(
+                                                  _essayController.text,
+                                                ) >=
+                                                (currentQuestion.minWords ??
+                                                    150)
+                                            ? Colors.green[600]
+                                            : Colors.orange[600],
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '${_getWordCount(_essayController.text)} words',
+                                        style: GoogleFonts.lexend(
+                                          fontSize: 13,
+                                          color:
+                                              _getWordCount(
+                                                    _essayController.text,
+                                                  ) >=
+                                                  (currentQuestion.minWords ??
+                                                      150)
+                                              ? Colors.green[700]
+                                              : Colors.orange[700],
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    'Minimum: ${currentQuestion.minWords ?? 150} words',
+                                    style: GoogleFonts.lexend(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Validation message
+                      if (_essayController.text.trim().isEmpty) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.red.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                size: 16,
+                                color: Colors.red[600],
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Please write your essay before submitting.',
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 12,
+                                    color: Colors.red[700],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ] else if (_getWordCount(_essayController.text) <
+                          (currentQuestion.minWords ?? 150)) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.orange.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 16,
+                                color: Colors.orange[700],
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Your essay needs ${(currentQuestion.minWords ?? 150) - _getWordCount(_essayController.text)} more words to meet the minimum requirement.',
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 12,
+                                    color: Colors.orange[700],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ] else ...[
+                      // Render question based on type (MCQ, Form Completion, Matching, etc.)
+                      _buildQuestionWidget(currentQuestion, primary),
+                    ],
 
                     const SizedBox(height: 16),
                   ],
@@ -736,42 +1192,166 @@ class _IELTSTakeTestScreenState extends State<IELTSTakeTestScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          'Exit Test?',
-          style: GoogleFonts.lexend(fontWeight: FontWeight.bold),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Warning Icon
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.orange.shade600,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Title
+            Text(
+              'Exit Test?',
+              style: GoogleFonts.lexend(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF333333),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Message
+            Text(
+              'Your progress will be lost if you exit now. Are you sure?',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.lexend(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFF0F0F0),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Continue Test',
+                      style: GoogleFonts.lexend(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF333333),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context); // Close dialog
+                      Navigator.pop(context); // Exit test
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade500,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Exit',
+                      style: GoogleFonts.lexend(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
-        content: Text(
-          'Your progress will be lost if you exit now.',
-          style: GoogleFonts.lexend(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: GoogleFonts.lexend()),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Exit test
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text('Exit', style: GoogleFonts.lexend(color: Colors.white)),
-          ),
-        ],
       ),
     );
   }
 
   Future<void> _submitTest() async {
     // Check if all questions are answered
-    if (_selectedAnswers.length < widget.test.questions.length) {
+    bool allAnswered = true;
+    String missingMessage = '';
+
+    for (var question in widget.test.questions) {
+      if (question.questionType == 'essay') {
+        // For essay questions, check if there's text
+        final essayText = _essayAnswers[question.id] ?? '';
+        final wordCount = _getWordCount(essayText);
+        if (wordCount < 10) {
+          // At least 10 words as a sanity check
+          allAnswered = false;
+          missingMessage = 'Please write your essay before submitting';
+          break;
+        }
+      } else {
+        // Check based on question type
+        final questionType = question.questionType ?? 'multiple_choice';
+        bool hasAnswer = false;
+
+        switch (questionType) {
+          case 'form_completion':
+            hasAnswer =
+                _formAnswers.containsKey(question.id) &&
+                _formAnswers[question.id]!.values.any((v) => v.isNotEmpty);
+            break;
+          case 'matching':
+            hasAnswer =
+                _matchingAnswers.containsKey(question.id) &&
+                _matchingAnswers[question.id]!.isNotEmpty;
+            break;
+          case 'sentence_completion':
+            hasAnswer =
+                _sentenceAnswers.containsKey(question.id) &&
+                _sentenceAnswers[question.id]!.values.any((v) => v.isNotEmpty);
+            break;
+          case 'flowchart':
+            hasAnswer =
+                _flowchartAnswers.containsKey(question.id) &&
+                _flowchartAnswers[question.id]!.values.any((v) => v.isNotEmpty);
+            break;
+          case 'multiple_choice':
+          default:
+            hasAnswer =
+                _selectedAnswers.containsKey(question.id) &&
+                _selectedAnswers[question.id]!.isNotEmpty;
+            break;
+        }
+
+        if (!hasAnswer) {
+          allAnswered = false;
+          missingMessage = 'Please answer all questions before submitting';
+          break;
+        }
+      }
+    }
+
+    if (!allAnswered) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Please answer all questions before submitting',
-            style: GoogleFonts.lexend(),
-          ),
+          content: Text(missingMessage, style: GoogleFonts.lexend()),
           backgroundColor: Colors.orange,
         ),
       );
@@ -790,10 +1370,59 @@ class _IELTSTakeTestScreenState extends State<IELTSTakeTestScreen> {
       // Prepare answers
       List<Map<String, dynamic>> answers = [];
       for (var question in widget.test.questions) {
-        answers.add({
-          'questionId': question.id,
-          'selectedAnswerId': _selectedAnswers[question.id],
-        });
+        final questionType = question.questionType ?? 'multiple_choice';
+
+        if (questionType == 'essay') {
+          // For essay questions, send the essay text
+          answers.add({
+            'questionId': question.id,
+            'answerText': _essayAnswers[question.id] ?? '',
+          });
+        } else if (questionType == 'form_completion') {
+          // For form completion, join all answers into a single string
+          final formAnswers = _formAnswers[question.id] ?? {};
+          final answerText = formAnswers.values.join(', ');
+          answers.add({'questionId': question.id, 'answerText': answerText});
+        } else if (questionType == 'sentence_completion') {
+          // For sentence completion
+          final sentenceAnswers = _sentenceAnswers[question.id] ?? {};
+          final answerText = sentenceAnswers.values.join(', ');
+          answers.add({'questionId': question.id, 'answerText': answerText});
+        } else if (questionType == 'flowchart') {
+          // For flowchart, send each blank's answer with index
+          final flowchartAnswers = _flowchartAnswers[question.id] ?? {};
+          // Build answer text as "0:answer1,1:answer2,..." format (blankIndex:answer)
+          final answerParts = <String>[];
+          flowchartAnswers.forEach((blankIndex, answer) {
+            answerParts.add('$blankIndex:$answer');
+          });
+          final answerText = answerParts.join(',');
+          answers.add({'questionId': question.id, 'answerText': answerText});
+        } else if (questionType == 'matching') {
+          // For matching, send each student's selected option letter
+          final matchingAnswers = _matchingAnswers[question.id] ?? {};
+          // Build answer text as "0:A,1:B,2:C,3:D" format (studentIndex:letter)
+          final answerParts = <String>[];
+          matchingAnswers.forEach((studentIndex, selectedOption) {
+            // Extract letter from option (e.g., "A. Some text" -> "A")
+            String letter = selectedOption;
+            if (selectedOption.length >= 2 && selectedOption[1] == '.') {
+              letter = selectedOption[0];
+            }
+            answerParts.add('$studentIndex:$letter');
+          });
+          answers.add({
+            'questionId': question.id,
+            'answerText': answerParts.join(','),
+          });
+        } else {
+          // For MCQ, send all selected answer IDs joined by comma
+          final selectedIds = _selectedAnswers[question.id] ?? <int>{};
+          answers.add({
+            'questionId': question.id,
+            'selectedAnswerIds': selectedIds.toList(),
+          });
+        }
       }
 
       // Submit test

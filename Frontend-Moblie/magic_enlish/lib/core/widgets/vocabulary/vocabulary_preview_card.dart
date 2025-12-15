@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:magic_enlish/core/widgets/vocabulary/cefr_level_badge.dart';
 import 'package:magic_enlish/core/widgets/vocabulary/example_item_widget.dart';
 import 'package:magic_enlish/data/models/vocabulary/Vocabulary.dart';
+import 'package:magic_enlish/core/utils/backend_utils.dart';
 
-class VocabularyPreviewCard extends StatelessWidget {
+class VocabularyPreviewCard extends StatefulWidget {
   final Vocabulary? vocabulary;
   final bool isLoading;
   final Color primaryColor;
@@ -17,12 +19,67 @@ class VocabularyPreviewCard extends StatelessWidget {
   });
 
   @override
+  State<VocabularyPreviewCard> createState() => _VocabularyPreviewCardState();
+}
+
+class _VocabularyPreviewCardState extends State<VocabularyPreviewCard> {
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isPlaying = false;
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  Future<void> _playAudio() async {
+    if (widget.vocabulary?.audioUrl == null ||
+        widget.vocabulary!.audioUrl.isEmpty) {
+      // Try TTS if no audio URL
+      if (widget.vocabulary != null) {
+        final ttsUrl = BackendUtils.getFullUrl(
+          '/tts?text=${Uri.encodeComponent(widget.vocabulary!.word)}',
+        );
+        try {
+          setState(() => _isPlaying = true);
+          await _audioPlayer.play(UrlSource(ttsUrl));
+          _audioPlayer.onPlayerComplete.listen((_) {
+            if (mounted) setState(() => _isPlaying = false);
+          });
+        } catch (e) {
+          if (mounted) setState(() => _isPlaying = false);
+        }
+      }
+      return;
+    }
+
+    try {
+      setState(() => _isPlaying = true);
+      String audioUrl = widget.vocabulary!.audioUrl;
+      if (!audioUrl.startsWith('http')) {
+        audioUrl = BackendUtils.getFullUrl('/storage/audio/$audioUrl');
+      }
+      await _audioPlayer.play(UrlSource(audioUrl));
+      _audioPlayer.onPlayerComplete.listen((_) {
+        if (mounted) setState(() => _isPlaying = false);
+      });
+    } catch (e) {
+      if (mounted) setState(() => _isPlaying = false);
+    }
+  }
+
+  Future<void> _stopAudio() async {
+    await _audioPlayer.stop();
+    if (mounted) setState(() => _isPlaying = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    if (widget.isLoading) {
       return _buildLoadingState();
     }
 
-    if (vocabulary == null) {
+    if (widget.vocabulary == null) {
       return _buildEmptyState();
     }
 
@@ -51,16 +108,16 @@ class VocabularyPreviewCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      vocabulary!.word,
+                      widget.vocabulary!.word,
                       style: GoogleFonts.lexend(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    if (vocabulary!.ipa.isNotEmpty) ...[
+                    if (widget.vocabulary!.ipa.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
-                        vocabulary!.ipa,
+                        widget.vocabulary!.ipa,
                         style: const TextStyle(
                           fontSize: 15,
                           color: Colors.black54,
@@ -71,7 +128,24 @@ class VocabularyPreviewCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.volume_up, color: primaryColor, size: 26),
+              GestureDetector(
+                onTap: _isPlaying ? _stopAudio : _playAudio,
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: widget.primaryColor.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Icon(
+                      _isPlaying ? Icons.pause : Icons.volume_up,
+                      color: widget.primaryColor,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
 
@@ -80,7 +154,7 @@ class VocabularyPreviewCard extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Meaning
-          if (vocabulary!.meaning.isNotEmpty) ...[
+          if (widget.vocabulary!.meaning.isNotEmpty) ...[
             Text(
               "Meaning",
               style: GoogleFonts.lexend(
@@ -91,7 +165,7 @@ class VocabularyPreviewCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              vocabulary!.meaning,
+              widget.vocabulary!.meaning,
               style: GoogleFonts.lexend(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -104,7 +178,7 @@ class VocabularyPreviewCard extends StatelessWidget {
           // Word Type and CEFR Level
           Row(
             children: [
-              if (vocabulary!.wordType.isNotEmpty)
+              if (widget.vocabulary!.wordType.isNotEmpty)
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,7 +192,7 @@ class VocabularyPreviewCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        vocabulary!.wordType,
+                        widget.vocabulary!.wordType,
                         style: GoogleFonts.lexend(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -127,7 +201,7 @@ class VocabularyPreviewCard extends StatelessWidget {
                     ],
                   ),
                 ),
-              if (vocabulary!.cefrLevel.isNotEmpty)
+              if (widget.vocabulary!.cefrLevel.isNotEmpty)
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,7 +215,7 @@ class VocabularyPreviewCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       CefrLevelBadge(
-                        level: vocabulary!.cefrLevel,
+                        level: widget.vocabulary!.cefrLevel,
                         animated: false,
                         fontSize: 12,
                         padding: const EdgeInsets.symmetric(
@@ -156,7 +230,7 @@ class VocabularyPreviewCard extends StatelessWidget {
           ),
 
           // Examples
-          if (vocabulary!.example.isNotEmpty) ...[
+          if (widget.vocabulary!.example.isNotEmpty) ...[
             const SizedBox(height: 16),
             Text(
               "Example",
@@ -167,14 +241,14 @@ class VocabularyPreviewCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            ...vocabulary!.example
+            ...widget.vocabulary!.example
                 .split('\n')
                 .where((e) => e.trim().isNotEmpty)
                 .take(2)
                 .map(
                   (e) => Padding(
                     padding: const EdgeInsets.only(bottom: 4),
-                    child: ExampleItem(text: e, iconColor: primaryColor),
+                    child: ExampleItem(text: e, iconColor: widget.primaryColor),
                   ),
                 ),
           ],
@@ -199,7 +273,7 @@ class VocabularyPreviewCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          CircularProgressIndicator(color: primaryColor),
+          CircularProgressIndicator(color: widget.primaryColor),
           const SizedBox(height: 16),
           Text(
             'Looking up word...',

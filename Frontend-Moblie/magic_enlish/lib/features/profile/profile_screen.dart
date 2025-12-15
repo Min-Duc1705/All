@@ -129,23 +129,115 @@ class ProfilePage extends StatelessWidget {
                       final confirmed = await showDialog<bool>(
                         context: context,
                         builder: (ctx) => AlertDialog(
-                          title: const Text('Confirm Logout'),
-                          content: const Text(
-                            'Are you sure you want to logout?',
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(false),
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(true),
-                              child: const Text(
-                                'Logout',
-                                style: TextStyle(color: Colors.red),
+                          contentPadding: const EdgeInsets.fromLTRB(
+                            24,
+                            20,
+                            24,
+                            24,
+                          ),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Warning Icon
+                              Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade50,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.logout_rounded,
+                                  color: Colors.red.shade400,
+                                  size: 30,
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 16),
+                              // Title
+                              Text(
+                                'Logout',
+                                style: GoogleFonts.lexend(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF333333),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              // Message
+                              Text(
+                                'Are you sure you want to logout from your account?',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.lexend(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                  height: 1.4,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              // Buttons
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton(
+                                      onPressed: () =>
+                                          Navigator.of(ctx).pop(false),
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 14,
+                                        ),
+                                        side: BorderSide(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Cancel',
+                                        style: GoogleFonts.lexend(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: () =>
+                                          Navigator.of(ctx).pop(true),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.red.shade500,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 14,
+                                        ),
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Logout',
+                                        style: GoogleFonts.lexend(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       );
 

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class IELTSTest {
   final int id;
   final String skill;
@@ -42,6 +44,9 @@ class IELTSQuestion {
   final String? questionType;
   final String? passage;
   final String? audioUrl;
+  final String? sampleAnswer;
+  final int? minWords;
+  final ChartData? chartData;
   final List<IELTSAnswer> answers;
 
   IELTSQuestion({
@@ -51,10 +56,30 @@ class IELTSQuestion {
     this.questionType,
     this.passage,
     this.audioUrl,
+    this.sampleAnswer,
+    this.minWords,
+    this.chartData,
     required this.answers,
   });
 
   factory IELTSQuestion.fromJson(Map<String, dynamic> json) {
+    ChartData? chartData;
+    if (json['chartData'] != null) {
+      if (json['chartData'] is String) {
+        // If chartData is a JSON string, parse it
+        try {
+          final Map<String, dynamic> chartJson = Map<String, dynamic>.from(
+            jsonDecode(json['chartData']),
+          );
+          chartData = ChartData.fromJson(chartJson);
+        } catch (e) {
+          chartData = null;
+        }
+      } else if (json['chartData'] is Map) {
+        chartData = ChartData.fromJson(json['chartData']);
+      }
+    }
+
     return IELTSQuestion(
       id: json['id'] as int,
       questionNumber: json['questionNumber'] as int,
@@ -62,9 +87,70 @@ class IELTSQuestion {
       questionType: json['questionType'] as String?,
       passage: json['passage'] as String?,
       audioUrl: json['audioUrl'] as String?,
+      sampleAnswer: json['sampleAnswer'] as String?,
+      minWords: json['minWords'] as int?,
+      chartData: chartData,
       answers: (json['answers'] as List<dynamic>)
           .map((a) => IELTSAnswer.fromJson(a as Map<String, dynamic>))
           .toList(),
+    );
+  }
+}
+
+/// Chart data for IELTS Writing Task 1
+class ChartData {
+  final String chartType; // "line", "bar", "pie"
+  final String title;
+  final String? xAxisLabel;
+  final String? yAxisLabel;
+  final List<String> labels;
+  final List<ChartDataset> datasets;
+
+  ChartData({
+    required this.chartType,
+    required this.title,
+    this.xAxisLabel,
+    this.yAxisLabel,
+    required this.labels,
+    required this.datasets,
+  });
+
+  factory ChartData.fromJson(Map<String, dynamic> json) {
+    return ChartData(
+      chartType: json['chartType'] as String? ?? 'bar',
+      title: json['title'] as String? ?? 'Chart',
+      xAxisLabel: json['xAxisLabel'] as String?,
+      yAxisLabel: json['yAxisLabel'] as String?,
+      labels:
+          (json['labels'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      datasets:
+          (json['datasets'] as List<dynamic>?)
+              ?.map((d) => ChartDataset.fromJson(d as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+  }
+}
+
+class ChartDataset {
+  final String label;
+  final List<double> data;
+  final String color;
+
+  ChartDataset({required this.label, required this.data, required this.color});
+
+  factory ChartDataset.fromJson(Map<String, dynamic> json) {
+    return ChartDataset(
+      label: json['label'] as String? ?? '',
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map((e) => (e as num).toDouble())
+              .toList() ??
+          [],
+      color: json['color'] as String? ?? '#4A90E2',
     );
   }
 }
