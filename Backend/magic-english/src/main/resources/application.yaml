@@ -37,7 +37,7 @@ spring:
       max-request-size: 10MB
   ai:
     openai:
-      api-key: AIzaSyDnEMRI-VwplJzIpsCaB0TK8pVhxUfPtkk
+      api-key: AIzaSyCgFlEzS_HFea2vk8X3yh2EiYoBaO_wHqI
       chat:
         base-url: https://generativelanguage.googleapis.com/
         completions-path: v1beta/openai/chat/completions
@@ -65,17 +65,12 @@ magic_english:
   upload: file:///T:/TryHard_IT_Project/Moblie/BTL/Backend/magic-english/public/
   ai:
     api-keys:
-      - AIzaSyCR5qO252q3NT7vGPayk9ef3cCsM6D_xRI # Key 1
-      - AIzaSyDGljXCjGl6mXAg0GqrlVrcDnC2IhXYfKo # Key 2
-      - AIzaSyDBsCLVlBMMX_GPi_DBPAINTmSOhlmOFvM # Key 3
-      - AIzaSyDnEMRI-VwplJzIpsCaB0TK8pVhxUfPtkk # Key 4
-      - AIzaSyBPWOnO5gosWNEbMl44WI_Ahl0Xdrvwa9Q # Key 5
-      - AIzaSyDNLRENu6mzqhl8MyzXQsbrHeOmXdvlfkQ # Key 6
-      - AIzaSyA6FQu8RXFuzRafgHNFrRLYGYGJpo6LuKA # Key 7
-      - AIzaSyC5ZocbsUsUo7JwLOAlXX4O9WtTIl6ctp8 # Key 8
-      - AIzaSyCiNxpsBd0K5vwKsMPolEhw_PRIUt5dgXE # Key 9
-      - AIzaSyD1NGlmqX_A_GMF20GUcHhQFA1OU4s3Sno # Key 10
-      - AIzaSyD8PJCLEuybZLqDMNrFrFgICH6yzah1Ea0 # Key 11
+      - AIzaSyCgFlEzS_HFea2vk8X3yh2EiYoBaO_wHqI # Key 1
+      - AIzaSyCaWsAPIC9HzO0dT99PHK3zRY-ShtYcFRc
+      - AIzaSyB-8kPsRV59sePwV_80C2FvD_zGkEWxkiw
+      - AIzaSyCe_TGHCAw4JVMUrmV_pN2dxsXE-ZUQ0iE
+      - AIzaSyBLLnpNMWmshVzAZHo2PWIjAcbTLnkbDIA
+
 
 server:
   port: 8080

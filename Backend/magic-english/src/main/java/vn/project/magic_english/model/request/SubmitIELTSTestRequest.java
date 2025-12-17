@@ -23,7 +23,8 @@ public class SubmitIELTSTestRequest {
         @NotNull(message = "Question ID is required")
         private Long questionId;
 
-        private Long selectedAnswerId; // Cho multiple choice
+        private Long selectedAnswerId; // Cho multiple choice (legacy single)
+        private List<Long> selectedAnswerIds; // Cho multiple choice (multi-select)
         private String answerText; // Cho fill_blank
     }
 }

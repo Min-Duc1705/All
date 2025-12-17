@@ -39,6 +39,15 @@ public class IELTSQuestion {
     @Column(name = "audio_url", columnDefinition = "TEXT")
     private String audioUrl; // Link audio cho Listening
 
+    @Column(name = "sample_answer", columnDefinition = "TEXT")
+    private String sampleAnswer; // Sample answer for Writing essays
+
+    @Column(name = "min_words")
+    private Integer minWords; // Minimum word count for Writing essays
+
+    @Column(name = "chart_data", columnDefinition = "TEXT")
+    private String chartData; // JSON data for Task 1 charts
+
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<IELTSAnswer> answers = new ArrayList<>();
 

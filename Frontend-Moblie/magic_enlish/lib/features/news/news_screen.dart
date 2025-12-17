@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:magic_enlish/core/widgets/common/app_top_bar.dart';
 import 'package:magic_enlish/core/widgets/common/app_bottom_nav.dart';
 import 'package:magic_enlish/data/services/news_service.dart';
-import 'package:magic_enlish/data/models/news_article.dart';
+import 'package:magic_enlish/data/models/news/news_article.dart';
 import 'package:magic_enlish/features/news/news_detail_screen.dart';
 
 class NewsScreen extends StatefulWidget {

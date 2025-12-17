@@ -22,7 +22,7 @@ public class IELTSAnswer {
     @JsonIgnore
     private IELTSQuestion question;
 
-    @Column(name = "answer_option", nullable = false, length = 10)
+    @Column(name = "answer_option", nullable = false, length = 50)
     private String answerOption; // A, B, C, D hoặc TRUE, FALSE
 
     @Column(name = "answer_text", nullable = false, columnDefinition = "TEXT")

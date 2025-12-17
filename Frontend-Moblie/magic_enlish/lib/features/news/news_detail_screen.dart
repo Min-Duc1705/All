@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:magic_enlish/data/models/news_article.dart';
+import 'package:magic_enlish/data/models/news/news_article.dart';
 import 'package:magic_enlish/core/widgets/common/app_top_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;

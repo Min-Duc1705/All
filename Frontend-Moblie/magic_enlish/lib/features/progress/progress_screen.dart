@@ -6,6 +6,7 @@ import 'package:magic_enlish/core/widgets/progress/bar_chart_card.dart';
 import 'package:magic_enlish/core/widgets/profile/stats_grid.dart';
 import 'package:magic_enlish/core/utils/backend_utils.dart';
 import 'package:magic_enlish/data/models/progress/achievement.dart';
+import 'package:magic_enlish/features/progress/all_achievements_screen.dart';
 import 'package:magic_enlish/providers/progress/progress_provider.dart';
 import 'package:magic_enlish/providers/auth/auth_provider.dart';
 import 'package:provider/provider.dart';
@@ -206,13 +207,46 @@ class _ProgressPageState extends State<ProgressPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'My Achievements',
-          style: GoogleFonts.lexend(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'My Achievements',
+              style: GoogleFonts.lexend(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AllAchievementsScreen(),
+                  ),
+                );
+              },
+              child: Row(
+                children: [
+                  Text(
+                    'View All',
+                    style: GoogleFonts.lexend(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF4A90E2),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: Color(0xFF4A90E2),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         SizedBox(

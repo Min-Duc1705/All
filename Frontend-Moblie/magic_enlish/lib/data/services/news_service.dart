@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'package:webfeed/webfeed.dart';
-import '../models/news_article.dart';
+import '../models/news/news_article.dart';
 
 class NewsService {
   // VNExpress International RSS feeds

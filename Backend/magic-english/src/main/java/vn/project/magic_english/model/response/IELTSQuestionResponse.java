@@ -16,7 +16,10 @@ public class IELTSQuestionResponse {
     private Integer questionNumber;
     private String questionText;
     private String questionType;
-    private String passage; // Cho Reading
+    private String passage; // Cho Reading hoặc Instructions cho Writing
     private String audioUrl; // Cho Listening
+    private String sampleAnswer; // Sample answer cho Writing
+    private Integer minWords; // Minimum word count cho Writing
+    private String chartData; // JSON chart data cho Task 1
     private List<IELTSAnswerResponse> answers;
 }

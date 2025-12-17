@@ -183,7 +183,7 @@ public class AudioProxyController {
         String encodedText = java.net.URLEncoder.encode(text, java.nio.charset.StandardCharsets.UTF_8);
         String voiceRssUrl = "https://api.voicerss.org/?key=" + voiceRssApiKey +
                 "&hl=en-gb&v=" + voice + "&src=" + encodedText +
-                "&c=MP3&f=44khz_16bit_mono&r=-2";
+                "&c=MP3&f=44khz_16bit_mono&r=-4";
 
         URL audioUrl = new URL(voiceRssUrl);
         URLConnection connection = audioUrl.openConnection();
