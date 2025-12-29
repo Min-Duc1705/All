@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:magic_enlish/data/models/ielts/ielts_test.dart';
 import 'package:magic_enlish/data/services/ielts_service.dart';
 import 'package:magic_enlish/features/practice/ielts_result_screen.dart';
-import 'package:magic_enlish/features/practice/widgets/ielts_chart_widget.dart';
+import 'package:magic_enlish/core/widgets/ielts_questions/ielts_chart_widget.dart';
 import 'package:magic_enlish/core/widgets/ielts_questions/ielts_questions.dart';
 import 'package:magic_enlish/core/utils/backend_utils.dart';
 import 'package:audioplayers/audioplayers.dart';

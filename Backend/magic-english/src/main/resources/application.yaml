@@ -37,7 +37,7 @@ spring:
       max-request-size: 10MB
   ai:
     openai:
-      api-key: AIzaSyCgFlEzS_HFea2vk8X3yh2EiYoBaO_wHqI
+      api-key: AIzaSyBv-rMRLxdVTGYVOJbBo68jOhHX7IcGmzs
       chat:
         base-url: https://generativelanguage.googleapis.com/
         completions-path: v1beta/openai/chat/completions
@@ -65,11 +65,11 @@ magic_english:
   upload: file:///T:/TryHard_IT_Project/Moblie/BTL/Backend/magic-english/public/
   ai:
     api-keys:
-      - AIzaSyCgFlEzS_HFea2vk8X3yh2EiYoBaO_wHqI # Key 1
-      - AIzaSyCaWsAPIC9HzO0dT99PHK3zRY-ShtYcFRc
-      - AIzaSyB-8kPsRV59sePwV_80C2FvD_zGkEWxkiw
-      - AIzaSyCe_TGHCAw4JVMUrmV_pN2dxsXE-ZUQ0iE
-      - AIzaSyBLLnpNMWmshVzAZHo2PWIjAcbTLnkbDIA
+      - AAIzaSyBv-rMRLxdVTGYVOJbBo68jOhHX7IcGmzs # Key 1
+      - AIzaSyCztpnaMx5f2AWgxK0gTiat4sIiRfIQN6A
+      - AIzaSyA7dptVyPvCF8bEAMYwXjJbw6WM7dFFC0c
+      - AIzaSyCC9Zhg68tbiDXjkN5EsLrD6ftuqBUZAq0
+      - AIzaSyDsUj1bQQntVbsZubeYTMcVBXm-6-WIoqg
 
 
 server:

@@ -6,6 +6,9 @@ import 'package:magic_enlish/core/widgets/profile/profile_card.dart';
 import 'package:magic_enlish/core/widgets/common/section_header.dart';
 import 'package:magic_enlish/core/widgets/profile/settings_section.dart';
 import 'package:magic_enlish/features/profile/edit_profile_screen.dart';
+import 'package:magic_enlish/features/profile/help_support_screen.dart';
+import 'package:magic_enlish/features/profile/privacy_policy_screen.dart';
+import 'package:magic_enlish/features/profile/terms_of_service_screen.dart';
 import 'package:magic_enlish/core/utils/backend_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:magic_enlish/providers/auth/auth_provider.dart';
@@ -92,9 +95,30 @@ class ProfilePage extends StatelessWidget {
               const SectionHeader(title: "About"),
               SettingsSection(
                 items: [
-                  _aboutItem(Icons.help_outline, "Help & Support"),
-                  _aboutItem(Icons.shield, "Privacy Policy"),
-                  _aboutItem(Icons.gavel, "Terms of Service"),
+                  _aboutItem(context, Icons.help_outline, "Help & Support", () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const HelpSupportScreen(),
+                      ),
+                    );
+                  }),
+                  _aboutItem(context, Icons.shield, "Privacy Policy", () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PrivacyPolicyScreen(),
+                      ),
+                    );
+                  }),
+                  _aboutItem(context, Icons.gavel, "Terms of Service", () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TermsOfServiceScreen(),
+                      ),
+                    );
+                  }),
                 ],
               ),
 
@@ -305,7 +329,12 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _aboutItem(IconData icon, String title) {
+  Widget _aboutItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    VoidCallback onTap,
+  ) {
     return ListTile(
       leading: Icon(icon, color: primary, size: 28),
       title: Text(
@@ -313,7 +342,7 @@ class ProfilePage extends StatelessWidget {
         style: GoogleFonts.lexend(fontSize: 15, fontWeight: FontWeight.w500),
       ),
       trailing: Icon(Icons.chevron_right, color: textPrimary, size: 22),
-      onTap: () {},
+      onTap: onTap,
     );
   }
 
@@ -327,7 +356,7 @@ class ProfilePage extends StatelessWidget {
     }
 
     // If already a full URL (Cloudinary or other), use it directly
-    if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+    if (avatarUrl.startsWith('https://')) {
       return avatarUrl;
     }
 
