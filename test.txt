@@ -1,0 +1,2 @@
+Hãy phân tích kĩ dự án của tôi hướng dẫn tôi dùng draw.io vẽ UseCase,UserFlow của cả dự án từ tổng quan đến  chi tiết từng chức năng
+bạn tạo hướng dẫn để trong thư mục doc cho tôi nhé đầu tiên là vẽ use case tổng quá cho hệ thống hãy viết và hướng dẫn tôi import vào draw.io bạn có thể tạo file hoặc dùng dưới mermaid

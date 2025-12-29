@@ -327,7 +327,7 @@ class ProfilePage extends StatelessWidget {
     }
 
     // If already a full URL (Cloudinary or other), use it directly
-    if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+    if (avatarUrl.startsWith('https://')) {
       return avatarUrl;
     }
 

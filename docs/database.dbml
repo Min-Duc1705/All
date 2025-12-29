@@ -1,0 +1,141 @@
+// Copy toàn bộ nội dung file này vào trang dbdiagram.io
+
+Table User {
+  id long [pk, increment]
+  name string
+  email string [unique]
+  password string
+  avatarUrl string
+  refreshToken mediumtext
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+Table Vocabulary {
+  id long [pk, increment]
+  user_id long [ref: > User.id] // User manages Vocabulary
+  word string
+  ipa string
+  audioUrl string
+  meaning text
+  wordType string
+  example text
+  cefrLevel string
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+Table Achievement {
+  id long [pk, increment]
+  title string
+  description string
+  iconUrl string
+  requiredValue int
+  metricType string
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+Table UserAchievement {
+  id long [pk, increment]
+  user_id long [ref: > User.id]
+  achievement_id long [ref: > Achievement.id] 
+  achievedAt timestamp
+}
+
+// TOEIC System
+Table TOEICTest {
+  id long [pk, increment]
+  section string
+  part string
+  difficulty string
+  title string
+  durationMinutes int
+  totalQuestions int
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+Table TOEICQuestion {
+  id long [pk, increment]
+  test_id long [ref: > TOEICTest.id]
+  questionNumber int
+  questionText text
+  questionType string
+  passage text
+  audioUrl text
+  imageUrl text
+  createdAt timestamp
+}
+
+Table TOEICAnswer {
+  id long [pk, increment]
+  question_id long [ref: > TOEICQuestion.id]
+  answerOption string
+  answerText text
+  isCorrect boolean
+  explanation text
+  createdAt timestamp
+}
+
+Table TOEICTestHistory {
+  id long [pk, increment]
+  user_id long [ref: > User.id]
+  test_id long [ref: > TOEICTest.id]
+  startedAt timestamp
+  completedAt timestamp
+  score int
+  correctAnswers int
+  totalAnswers int
+  status string
+  timeSpentSeconds int
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+// IELTS System
+Table IELTSTest {
+  id long [pk, increment]
+  skill string
+  level string
+  difficulty string
+  title string
+  durationMinutes int
+  totalQuestions int
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+Table IELTSQuestion {
+  id long [pk, increment]
+  test_id long [ref: > IELTSTest.id]
+  questionNumber int
+  questionText text
+  questionType string
+  passage text
+  audioUrl text
+  imageUrl text
+}
+
+Table IELTSTestHistory {
+  id long [pk, increment]
+  user_id long [ref: > User.id]
+  test_id long [ref: > IELTSTest.id]
+  startedAt timestamp
+  completedAt timestamp
+  score decimal
+  correctAnswers int
+  totalAnswers int
+  status string
+  timeSpentSeconds int
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+Table IELTSUserAnswer {
+  id long [pk, increment]
+  history_id long [ref: > IELTSTestHistory.id]
+  question_id long [ref: > IELTSQuestion.id]
+  userAnswer string
+  isCorrect boolean
+}

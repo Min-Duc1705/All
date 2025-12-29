@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../../data/services/toeic_service.dart';
 import 'toeic_take_test_screen.dart';
 
@@ -666,11 +667,30 @@ class _TOEICPracticeScreenState extends State<TOEICPracticeScreen> {
       // Start test session
       final history = await _toeicService.startTest(test.id);
 
-      // Close loading dialog
+      // PRELOAD FIRST IMAGE before navigating (so it shows instantly)
+      final firstImageQuestion = test.questions.firstWhere(
+        (q) => q.imageUrl != null && q.imageUrl!.isNotEmpty,
+        orElse: () => test.questions.first,
+      );
+
+      if (firstImageQuestion.imageUrl != null &&
+          firstImageQuestion.imageUrl!.isNotEmpty) {
+        try {
+          debugPrint('Preloading first image before entering test...');
+          await DefaultCacheManager().downloadFile(
+            firstImageQuestion.imageUrl!,
+          );
+          debugPrint('First image ready!');
+        } catch (e) {
+          debugPrint('Failed to preload first image: $e');
+        }
+      }
+
+      // Close loading dialog and navigate to test
       if (mounted) {
         Navigator.of(context).pop();
 
-        // Navigate to take test screen
+        // Navigate to take test screen (first image already cached!)
         Navigator.push(
           context,
           MaterialPageRoute(

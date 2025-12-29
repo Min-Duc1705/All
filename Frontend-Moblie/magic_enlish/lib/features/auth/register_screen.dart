@@ -173,7 +173,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       // NAME FIELD
                       AuthFormField(
-                        label: "Họ và Tên",
+                        label: "Full Name",
                         inputWidget: AuthTextField(
                           controller: nameCtrl,
                           hint: "Enter your full name",
