@@ -6,6 +6,7 @@ import 'package:magic_enlish/core/widgets/grammar/grammar_input_card.dart';
 import 'package:magic_enlish/core/widgets/grammar/grammar_score_card.dart';
 import 'package:magic_enlish/core/widgets/grammar/grammar_summary_card.dart';
 import 'package:magic_enlish/core/widgets/grammar/grammar_error_card.dart';
+import 'package:magic_enlish/features/grammar_checker/grammar_history_screen.dart';
 import 'package:magic_enlish/providers/grammar/grammar_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -308,6 +309,23 @@ class _GrammarCheckerPageState extends State<GrammarCheckerPage> {
                               color: const Color(0xFF333333),
                             ),
                           ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.history,
+                            size: 24,
+                            color: Color(0xFF4A90E2),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const GrammarHistoryScreen(),
+                              ),
+                            );
+                          },
+                          tooltip: 'View history',
+                          padding: EdgeInsets.zero,
                         ),
                         IconButton(
                           icon: const Icon(

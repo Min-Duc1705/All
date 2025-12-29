@@ -53,11 +53,14 @@ class GrammarService {
       headers: {'Authorization': 'Bearer $token'},
     );
 
+    print('Grammar History API Response Status: ${response.statusCode}');
+    print('Grammar History API Response Body: ${response.body}');
+
     if (response.statusCode == 200) {
       final responseData = jsonDecode(utf8.decode(response.bodyBytes));
       // Extract data from wrapper if exists
       final data = responseData['data'] ?? responseData;
-      final result = data['result'] as List<dynamic>;
+      final result = data['result'] as List<dynamic>? ?? [];
 
       return {
         'grammars': result.map((json) => Grammar.fromJson(json)).toList(),

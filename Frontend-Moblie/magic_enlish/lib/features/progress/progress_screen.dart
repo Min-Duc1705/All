@@ -7,6 +7,10 @@ import 'package:magic_enlish/core/widgets/profile/stats_grid.dart';
 import 'package:magic_enlish/core/utils/backend_utils.dart';
 import 'package:magic_enlish/data/models/progress/achievement.dart';
 import 'package:magic_enlish/features/progress/all_achievements_screen.dart';
+import 'package:magic_enlish/features/progress/streak_detail_screen.dart';
+import 'package:magic_enlish/features/progress/vocabulary_detail_screen.dart';
+import 'package:magic_enlish/features/progress/grammar_check_detail_screen.dart';
+import 'package:magic_enlish/features/progress/grammar_score_detail_screen.dart';
 import 'package:magic_enlish/providers/progress/progress_provider.dart';
 import 'package:magic_enlish/providers/auth/auth_provider.dart';
 import 'package:provider/provider.dart';
@@ -294,6 +298,46 @@ class _ProgressPageState extends State<ProgressPage> {
         'Grammar Score',
       ],
       cardSubtitles: const ['Streak', 'Total', 'Total', 'Avg Total'],
+      onStreakTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => StreakDetailScreen(
+              currentStreak: progressProvider.longestStreak,
+            ),
+          ),
+        );
+      },
+      onVocabularyTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VocabularyDetailScreen(
+              totalWords: progressProvider.totalVocabularyCount,
+            ),
+          ),
+        );
+      },
+      onGrammarCheckTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => GrammarCheckDetailScreen(
+              totalChecks: progressProvider.totalGrammarChecks,
+            ),
+          ),
+        );
+      },
+      onGrammarScoreTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => GrammarScoreDetailScreen(
+              avgScore: progressProvider.avgGrammarScoreTotal,
+            ),
+          ),
+        );
+      },
     );
   }
 
