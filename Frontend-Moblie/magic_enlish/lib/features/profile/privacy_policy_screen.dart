@@ -10,13 +10,21 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF4F6F9);
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF333333);
+    final bodyTextColor = isDark ? Colors.grey[300] : Colors.grey[700];
+
     return Scaffold(
-      backgroundColor: background,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: cardColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF333333)),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -24,7 +32,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
           style: GoogleFonts.lexend(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF333333),
+            color: textColor,
           ),
         ),
         centerTitle: true,
@@ -79,6 +87,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
             _buildSection(
               'Introduction',
               'Magic English ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application.',
+              cardColor,
+              textColor,
+              bodyTextColor,
             ),
             _buildSection(
               'Information We Collect',
@@ -91,6 +102,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
 • Device Information: Device type, operating system, unique device identifiers, and mobile network information.
 
 • Location Data: With your consent, we may collect location data to provide location-based features.''',
+              cardColor,
+              textColor,
+              bodyTextColor,
             ),
             _buildSection(
               'How We Use Your Information',
@@ -102,30 +116,51 @@ class PrivacyPolicyScreen extends StatelessWidget {
 • Analyze usage patterns to improve our app
 • Respond to your requests and support inquiries
 • Comply with legal obligations''',
+              cardColor,
+              textColor,
+              bodyTextColor,
             ),
             _buildSection(
               'Data Security',
               'We implement appropriate technical and organizational security measures to protect your personal information. However, no method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security.',
+              cardColor,
+              textColor,
+              bodyTextColor,
             ),
             _buildSection(
               'Third-Party Services',
               'Our app may contain links to third-party websites or services. We are not responsible for the privacy practices of these external sites. We encourage you to review their privacy policies.',
+              cardColor,
+              textColor,
+              bodyTextColor,
             ),
             _buildSection(
               'Children\'s Privacy',
               'Our service is not directed to children under 13. We do not knowingly collect personal information from children under 13. If you become aware that a child has provided us with personal data, please contact us.',
+              cardColor,
+              textColor,
+              bodyTextColor,
             ),
-            _buildSection('Your Rights', '''You have the right to:
+            _buildSection(
+              'Your Rights',
+              '''You have the right to:
 
 • Access your personal data
 • Correct inaccurate data
 • Request deletion of your data
 • Object to processing of your data
 • Data portability
-• Withdraw consent at any time'''),
+• Withdraw consent at any time''',
+              cardColor,
+              textColor,
+              bodyTextColor,
+            ),
             _buildSection(
               'Contact Us',
               'If you have questions about this Privacy Policy, please contact us at:\n\nEmail: privacy@magicenglish.com\nPhone: +84 123 456 789',
+              cardColor,
+              textColor,
+              bodyTextColor,
             ),
             const SizedBox(height: 20),
           ],
@@ -134,7 +169,13 @@ class PrivacyPolicyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(String title, String content) {
+  Widget _buildSection(
+    String title,
+    String content,
+    Color cardColor,
+    Color textColor,
+    Color? bodyTextColor,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -165,7 +206,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   style: GoogleFonts.lexend(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF333333),
+                    color: textColor,
                   ),
                 ),
               ),
@@ -176,7 +217,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             content,
             style: GoogleFonts.lexend(
               fontSize: 14,
-              color: Colors.grey[700],
+              color: bodyTextColor,
               height: 1.6,
             ),
           ),

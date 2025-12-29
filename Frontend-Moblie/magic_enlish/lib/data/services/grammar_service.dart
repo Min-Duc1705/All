@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:magic_enlish/core/services/api_client.dart';
 import 'package:magic_enlish/data/models/grammar/grammar.dart';
 import 'package:magic_enlish/core/constants/api_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,7 +19,7 @@ class GrammarService {
       throw Exception('No access token found');
     }
 
-    final response = await http.post(
+    final response = await ApiClient.post(
       Uri.parse('$baseUrl/check'),
       headers: {
         'Content-Type': 'application/json',
@@ -48,8 +48,8 @@ class GrammarService {
       throw Exception('No access token found');
     }
 
-    final response = await http.get(
-      Uri.parse('$baseUrl?page=$page&size=$size'),
+    final response = await ApiClient.get(
+      Uri.parse('$baseUrl?page=$page&size=$size&sort=createdAt,desc'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -78,7 +78,7 @@ class GrammarService {
       throw Exception('No access token found');
     }
 
-    final response = await http.get(
+    final response = await ApiClient.get(
       Uri.parse('$baseUrl/$id'),
       headers: {'Authorization': 'Bearer $token'},
     );
@@ -100,7 +100,7 @@ class GrammarService {
       throw Exception('No access token found');
     }
 
-    final response = await http.delete(
+    final response = await ApiClient.delete(
       Uri.parse('$baseUrl/$id'),
       headers: {'Authorization': 'Bearer $token'},
     );

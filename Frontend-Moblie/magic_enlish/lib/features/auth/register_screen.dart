@@ -113,8 +113,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xfff6f6f8);
+    final textPrimary = isDark ? Colors.white : const Color(0xff100d1b);
+    final textSecondary = isDark
+        ? Colors.grey.shade400
+        : const Color(0xff100d1b).withOpacity(0.8);
+    final inputBgColor = isDark
+        ? const Color(0xFF2D2D2D)
+        : const Color(0xfff6f6f8);
+    final borderColor = isDark ? Colors.grey.shade700 : const Color(0xffd3cfe7);
+    final placeholderColor = isDark
+        ? Colors.grey.shade500
+        : const Color(0xff594c9a);
+    final iconColor = isDark ? Colors.white : const Color(0xff100d1b);
+
     return Scaffold(
-      backgroundColor: const Color(0xfff6f6f8), // background-light
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -126,7 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back, size: 28),
+                    icon: Icon(Icons.arrow_back, size: 28, color: iconColor),
                   ),
                   Expanded(
                     child: Text(
@@ -135,7 +152,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: GoogleFonts.lexend(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xff100d1b),
+                        color: textPrimary,
                       ),
                     ),
                   ),
@@ -158,14 +175,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         style: GoogleFonts.lexend(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xff100d1b),
+                          color: textPrimary,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         "Start your journey to mastering English today.",
                         style: GoogleFonts.lexend(
-                          color: const Color(0xff100d1b).withOpacity(0.8),
+                          color: textSecondary,
                           fontSize: 15,
                         ),
                       ),
@@ -178,9 +195,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           controller: nameCtrl,
                           hint: "Enter your full name",
                           icon: Icons.person_outline,
-                          inputBg: inputBg,
-                          borderLight: borderLight,
-                          placeholderLight: placeholderLight,
+                          inputBg: inputBgColor,
+                          borderLight: borderColor,
+                          placeholderLight: placeholderColor,
                           primary: primary,
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -200,9 +217,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           hint: "Enter your email",
                           icon: Icons.mail_outline,
                           keyboardType: TextInputType.emailAddress,
-                          inputBg: inputBg,
-                          borderLight: borderLight,
-                          placeholderLight: placeholderLight,
+                          inputBg: inputBgColor,
+                          borderLight: borderColor,
+                          placeholderLight: placeholderColor,
                           primary: primary,
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -230,9 +247,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onToggle: () => setState(() {
                             passVisible = !passVisible;
                           }),
-                          inputBg: inputBg,
-                          borderLight: borderLight,
-                          placeholderLight: placeholderLight,
+                          inputBg: inputBgColor,
+                          borderLight: borderColor,
+                          placeholderLight: placeholderColor,
                           primary: primary,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -258,9 +275,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onToggle: () => setState(() {
                             confirmPassVisible = !confirmPassVisible;
                           }),
-                          inputBg: inputBg,
-                          borderLight: borderLight,
-                          placeholderLight: placeholderLight,
+                          inputBg: inputBgColor,
+                          borderLight: borderColor,
+                          placeholderLight: placeholderColor,
                           primary: primary,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -315,7 +332,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             text: "Already have an account? ",
                             style: GoogleFonts.lexend(
                               fontSize: 14,
-                              color: const Color(0xff594c9a),
+                              color: placeholderColor,
                             ),
                             children: [
                               WidgetSpan(

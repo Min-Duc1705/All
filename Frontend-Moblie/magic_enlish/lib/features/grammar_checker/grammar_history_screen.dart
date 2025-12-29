@@ -139,6 +139,16 @@ class _GrammarHistoryScreenState extends State<GrammarHistoryScreen> {
               ),
             ),
           ],
+          backgroundColor: Theme.of(context).cardColor,
+          titleTextStyle: GoogleFonts.lexend(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).textTheme.titleLarge?.color,
+          ),
+          contentTextStyle: GoogleFonts.lexend(
+            fontSize: 14,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
+          ),
         );
       },
     );
@@ -150,10 +160,31 @@ class _GrammarHistoryScreenState extends State<GrammarHistoryScreen> {
     return const Color(0xFFE94E77);
   }
 
+  Color _getErrorTypeColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'spelling':
+        return const Color(0xFFE94E77); // Pink
+      case 'punctuation':
+        return const Color(0xFF4A90E2); // Blue
+      case 'clarity':
+        return const Color(0xFFF5A623); // Orange
+      case 'grammar':
+      default:
+        return const Color(0xFF9B59B6); // Purple
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    const Color background = Color(0xFFF8F9FA);
-    const Color borderColor = Color(0xFFEAECEF);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF8F9FA);
+    final borderColor = isDark
+        ? const Color(0xFF3D3D3D)
+        : const Color(0xFFEAECEF);
+    final textPrimary = isDark ? Colors.white : const Color(0xFF333333);
+    final appBarBg = isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF8F9FA);
 
     return Scaffold(
       backgroundColor: background,
@@ -165,15 +196,13 @@ class _GrammarHistoryScreenState extends State<GrammarHistoryScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               height: 56,
               decoration: BoxDecoration(
-                color: background.withOpacity(0.8),
-                border: const Border(
-                  bottom: BorderSide(color: borderColor),
-                ),
+                color: appBarBg.withOpacity(0.8),
+                border: Border(bottom: BorderSide(color: borderColor)),
               ),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, size: 24),
+                    icon: Icon(Icons.arrow_back, size: 24, color: textPrimary),
                     onPressed: () => Navigator.pop(context),
                     padding: EdgeInsets.zero,
                   ),
@@ -184,7 +213,7 @@ class _GrammarHistoryScreenState extends State<GrammarHistoryScreen> {
                       style: GoogleFonts.lexend(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF333333),
+                        color: textPrimary,
                       ),
                     ),
                   ),
@@ -202,86 +231,84 @@ class _GrammarHistoryScreenState extends State<GrammarHistoryScreen> {
                       ),
                     )
                   : _error != null
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.error_outline,
-                                size: 64,
-                                color: Colors.grey.shade400,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Error loading history',
-                                style: GoogleFonts.lexend(
-                                  fontSize: 16,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              TextButton(
-                                onPressed: () => _loadHistory(),
-                                child: Text(
-                                  'Try Again',
-                                  style: GoogleFonts.lexend(
-                                    color: const Color(0xFF4A90E2),
-                                  ),
-                                ),
-                              ),
-                            ],
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.grey.shade400,
                           ),
-                        )
-                      : _grammarHistory.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.history,
-                                    size: 64,
-                                    color: Colors.grey.shade400,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'No grammar checks yet',
-                                    style: GoogleFonts.lexend(
-                                      fontSize: 16,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Start checking your grammar!',
-                                    style: GoogleFonts.lexend(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : RefreshIndicator(
-                              onRefresh: () => _loadHistory(page: _currentPage),
-                              child: ListView.builder(
-                                padding: const EdgeInsets.all(16),
-                                itemCount: _grammarHistory.length,
-                                itemBuilder: (context, index) {
-                                  final grammar = _grammarHistory[index];
-                                  return _buildHistoryCard(grammar);
-                                },
+                          const SizedBox(height: 16),
+                          Text(
+                            'Error loading history',
+                            style: GoogleFonts.lexend(
+                              fontSize: 16,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: () => _loadHistory(),
+                            child: Text(
+                              'Try Again',
+                              style: GoogleFonts.lexend(
+                                color: const Color(0xFF4A90E2),
                               ),
                             ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : _grammarHistory.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.history,
+                            size: 64,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No grammar checks yet',
+                            style: GoogleFonts.lexend(
+                              fontSize: 16,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Start checking your grammar!',
+                            style: GoogleFonts.lexend(
+                              fontSize: 14,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () => _loadHistory(page: 0),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _grammarHistory.length,
+                        itemBuilder: (context, index) {
+                          final grammar = _grammarHistory[index];
+                          return _buildHistoryCard(grammar);
+                        },
+                      ),
+                    ),
             ),
 
             // Pagination
             if (!_isLoading && _grammarHistory.isNotEmpty && _totalPages > 1)
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: const BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: borderColor),
-                  ),
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: borderColor)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -314,15 +341,18 @@ class _GrammarHistoryScreenState extends State<GrammarHistoryScreen> {
   Widget _buildHistoryCard(Grammar grammar) {
     final scoreColor = _getScoreColor(grammar.score);
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
-    
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF333333);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -352,18 +382,12 @@ class _GrammarHistoryScreenState extends State<GrammarHistoryScreen> {
                       decoration: BoxDecoration(
                         color: scoreColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: scoreColor.withOpacity(0.3),
-                        ),
+                        border: Border.all(color: scoreColor.withOpacity(0.3)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.score,
-                            size: 16,
-                            color: scoreColor,
-                          ),
+                          Icon(Icons.score, size: 16, color: scoreColor),
                           const SizedBox(width: 4),
                           Text(
                             '${grammar.score}/100',
@@ -418,7 +442,7 @@ class _GrammarHistoryScreenState extends State<GrammarHistoryScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.lexend(
                     fontSize: 14,
-                    color: const Color(0xFF333333),
+                    color: textColor,
                     height: 1.4,
                   ),
                 ),
@@ -440,6 +464,11 @@ class _GrammarHistoryScreenState extends State<GrammarHistoryScreen> {
   }
 
   void _showDetailDialog(Grammar grammar) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF333333);
+    final sectionBg = isDark ? const Color(0xFF2C2C2C) : Colors.grey.shade100;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -447,9 +476,9 @@ class _GrammarHistoryScreenState extends State<GrammarHistoryScreen> {
       builder: (BuildContext context) {
         return Container(
           height: MediaQuery.of(context).size.height * 0.8,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(
             children: [
@@ -459,7 +488,7 @@ class _GrammarHistoryScreenState extends State<GrammarHistoryScreen> {
                 height: 4,
                 margin: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -488,7 +517,7 @@ class _GrammarHistoryScreenState extends State<GrammarHistoryScreen> {
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.close),
+                      icon: Icon(Icons.close, color: textColor),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -516,14 +545,14 @@ class _GrammarHistoryScreenState extends State<GrammarHistoryScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: sectionBg,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           grammar.inputText,
                           style: GoogleFonts.lexend(
                             fontSize: 14,
-                            color: const Color(0xFF333333),
+                            color: textColor,
                             height: 1.5,
                           ),
                         ),
@@ -572,81 +601,89 @@ class _GrammarHistoryScreenState extends State<GrammarHistoryScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        ...grammar.errors.map((error) => Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE94E77).withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: const Color(0xFFE94E77).withOpacity(0.2),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFE94E77),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      error.errorType,
-                                      style: GoogleFonts.lexend(
-                                        fontSize: 11,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                        ...grammar.errors.map((error) {
+                          final errorColor = _getErrorTypeColor(
+                            error.errorType,
+                          );
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: errorColor.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: errorColor.withOpacity(0.2),
                               ),
-                              const SizedBox(height: 8),
-                              RichText(
-                                text: TextSpan(
-                                  style: GoogleFonts.lexend(
-                                    fontSize: 13,
-                                    color: const Color(0xFF333333),
-                                  ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
                                   children: [
-                                    TextSpan(
-                                      text: '"${error.errorText}"',
-                                      style: const TextStyle(
-                                        decoration: TextDecoration.lineThrough,
-                                        color: Color(0xFFE94E77),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
                                       ),
-                                    ),
-                                    const TextSpan(text: ' → '),
-                                    TextSpan(
-                                      text: '"${error.correctedText}"',
-                                      style: const TextStyle(
-                                        color: Color(0xFF4CAF50),
-                                        fontWeight: FontWeight.w500,
+                                      decoration: BoxDecoration(
+                                        color: errorColor,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        error.errorType,
+                                        style: GoogleFonts.lexend(
+                                          fontSize: 11,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
-                              if (error.explanation.isNotEmpty) ...[
                                 const SizedBox(height: 8),
-                                Text(
-                                  error.explanation,
-                                  style: GoogleFonts.lexend(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
-                                    fontStyle: FontStyle.italic,
+                                RichText(
+                                  text: TextSpan(
+                                    style: GoogleFonts.lexend(
+                                      fontSize: 13,
+                                      color: textColor,
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: '"${error.errorText}"',
+                                        style: TextStyle(
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                          color: errorColor,
+                                        ),
+                                      ),
+                                      const TextSpan(text: ' → '),
+                                      TextSpan(
+                                        text: '"${error.correctedText}"',
+                                        style: const TextStyle(
+                                          color: Color(0xFF7ED321),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
+                                if (error.explanation.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    error.explanation,
+                                    style: GoogleFonts.lexend(
+                                      fontSize: 12,
+                                      color: isDark
+                                          ? Colors.grey.shade400
+                                          : Colors.grey.shade600,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
                               ],
-                            ],
-                          ),
-                        )),
+                            ),
+                          );
+                        }).toList(), // Added .toList() to fix the map usage
                       ],
                     ],
                   ),

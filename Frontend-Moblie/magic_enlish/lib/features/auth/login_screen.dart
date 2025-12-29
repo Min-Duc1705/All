@@ -114,8 +114,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDark
+        ? const Color(0xFF121212)
+        : AppColors.lightBg;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textPrimary = isDark ? Colors.white : AppColors.textDark;
+    final textSecondary = isDark ? Colors.grey.shade400 : AppColors.placeholder;
+    final dividerColor = isDark ? Colors.grey.shade700 : AppColors.borderColor;
+    final shadowColor = isDark ? Colors.black.withOpacity(0.3) : Colors.black26;
+
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -129,13 +139,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardColor,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: const [
+                    boxShadow: [
                       BoxShadow(
-                        color: Colors.black26,
+                        color: shadowColor,
                         blurRadius: 10,
-                        offset: Offset(0, 3),
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
@@ -148,12 +158,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             Text(
                               "Welcome Back!",
-                              style: AppTextStyles.screenTitle(),
+                              style: AppTextStyles.screenTitle().copyWith(
+                                color: textPrimary,
+                              ),
                             ),
                             const SizedBox(height: 6),
                             Text(
                               "Log in to continue your journey.",
-                              style: AppTextStyles.subtitle(),
+                              style: AppTextStyles.subtitle().copyWith(
+                                color: textSecondary,
+                              ),
                             ),
                           ],
                         ),
@@ -175,7 +189,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       // PASSWORD FIELD
                       Row(
                         children: [
-                          Text("Password", style: AppTextStyles.label()),
+                          Text(
+                            "Password",
+                            style: AppTextStyles.label().copyWith(
+                              color: isDark ? Colors.grey.shade300 : null,
+                            ),
+                          ),
                           const Spacer(),
                           Text("Forgot Password?", style: AppTextStyles.link()),
                         ],
@@ -202,20 +221,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: Container(
-                              height: 1,
-                              color: AppColors.borderColor,
-                            ),
+                            child: Container(height: 1, color: dividerColor),
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Text("or", style: AppTextStyles.body()),
+                            child: Text(
+                              "or",
+                              style: AppTextStyles.body().copyWith(
+                                color: textSecondary,
+                              ),
+                            ),
                           ),
                           Expanded(
-                            child: Container(
-                              height: 1,
-                              color: AppColors.borderColor,
-                            ),
+                            child: Container(height: 1, color: dividerColor),
                           ),
                         ],
                       ),
@@ -225,7 +243,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       // GOOGLE BUTTON
                       CustomButton(
                         text: "Continue with Google",
-                        onPressed: () {},
+                        onPressed: () {
+                          SnackBarUtils.showInfo(
+                            context,
+                            'Feature Coming Soon!',
+                          );
+                        },
                         isOutlined: true,
                         icon: Image.network(
                           BackendUtils.getImageUrl(
@@ -253,7 +276,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 RichText(
                   text: TextSpan(
                     text: "Don't have an account? ",
-                    style: AppTextStyles.body(),
+                    style: AppTextStyles.body().copyWith(color: textSecondary),
                     children: [
                       WidgetSpan(
                         child: GestureDetector(

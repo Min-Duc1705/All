@@ -82,6 +82,7 @@ public class AuthController {
 
         // create refresh token
         String refresh_token = this.securityUtil.createRefreshToken(loginDto.getEmail(), res);
+        res.setRefreshToken(refresh_token);
 
         // update user
         this.userService.updateUserToken(refresh_token, loginDto.getEmail());
@@ -157,6 +158,7 @@ public class AuthController {
 
         // create refresh token
         String new_refresh_token = this.securityUtil.createRefreshToken(email, res);
+        res.setRefreshToken(new_refresh_token);
 
         // update user
         this.userService.updateUserToken(new_refresh_token, email);

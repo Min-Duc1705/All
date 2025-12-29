@@ -218,8 +218,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF4F6F9);
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final hintColor = isDark ? Colors.grey[400] : Colors.black54;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F9),
+      backgroundColor: backgroundColor,
       //bottomNavigationBar: const AppBottomNav(currentIndex: 4),
       body: SafeArea(
         child: Column(
@@ -264,6 +272,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 width: 112,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: isDark
+                                        ? const Color(0xFF2C2C2C)
+                                        : Colors.transparent,
+                                    width: isDark ? 2 : 0,
+                                  ),
                                   image: DecorationImage(
                                     fit: BoxFit.cover,
                                     image: _isLocalAvatar
@@ -282,7 +296,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     color: const Color(0xFF4A90E2),
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: Colors.white,
+                                      color: cardColor,
                                       width: 2,
                                     ),
                                   ),
@@ -315,10 +329,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     // Form fields
                     TextFormField(
                       controller: _nameCtrl,
+                      style: TextStyle(color: textColor),
                       decoration: InputDecoration(
                         labelText: 'Name',
+                        labelStyle: TextStyle(color: hintColor),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: cardColor,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -333,10 +349,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     TextFormField(
                       controller: _emailCtrl,
                       keyboardType: TextInputType.emailAddress,
+                      style: TextStyle(color: textColor),
                       decoration: InputDecoration(
                         labelText: 'Email',
+                        labelStyle: TextStyle(color: hintColor),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: cardColor,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -352,7 +370,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     // Change password row
                     GestureDetector(
                       onTap: () {
-                        // navigate to change password screen if exists
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Feature coming soon!'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
                       },
                       child: Container(
                         width: double.infinity,
@@ -361,7 +384,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           vertical: 14,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: cardColor,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -369,12 +392,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           children: [
                             Text(
                               'Change Password',
-                              style: GoogleFonts.lexend(fontSize: 15),
+                              style: GoogleFonts.lexend(
+                                fontSize: 15,
+                                color: textColor,
+                              ),
                             ),
-                            const Icon(
-                              Icons.chevron_right,
-                              color: Colors.black54,
-                            ),
+                            Icon(Icons.chevron_right, color: hintColor),
                           ],
                         ),
                       ),

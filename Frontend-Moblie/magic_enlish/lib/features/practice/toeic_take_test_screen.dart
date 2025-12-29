@@ -333,17 +333,22 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
 
   // Build placeholder widget for Part 1 when no image is available
   Widget _buildImagePlaceholder(Color primary) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.image_outlined, size: 64, color: Colors.grey.shade400),
+        Icon(
+          Icons.image_outlined,
+          size: 64,
+          color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+        ),
         const SizedBox(height: 12),
         Text(
           'Photograph',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: Colors.grey.shade500,
+            color: isDark ? Colors.grey.shade400 : Colors.grey.shade500,
           ),
         ),
         const SizedBox(height: 4),
@@ -351,7 +356,7 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
           'Listen to the audio for descriptions',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 12,
-            color: Colors.grey.shade400,
+            color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
           ),
         ),
       ],
@@ -360,27 +365,39 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primary = Color(0xFF059669); // Teal for TOEIC
-    const neutral = Color(0xFFE0E0E0);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = isDark ? const Color(0xFF4ADE80) : const Color(0xFF059669);
+    final neutral = isDark ? Colors.grey[800]! : const Color(0xFFE0E0E0);
+    final background = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF9F9F9);
+    final surface = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textPrimary = isDark ? Colors.white : const Color(0xFF333333);
+    final textSecondary = isDark ? Colors.grey.shade400 : Colors.grey[600];
+    final border = isDark ? Colors.grey.shade700 : Colors.grey[300]!;
+    final blueColor = isDark ? Colors.blue.shade300 : const Color(0xFF2563EB);
+    final blueBg = isDark
+        ? Colors.blue.withOpacity(0.2)
+        : const Color(0xFF2563EB).withOpacity(0.05);
 
     final currentQuestion = widget.test.questions[_currentQuestionIndex];
     final selectedAnswerId = _selectedAnswers[currentQuestion.id];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: background,
       body: SafeArea(
         child: Column(
           children: [
             // Top App Bar
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFF9F9F9),
+                color: background,
                 border: Border(
                   bottom: BorderSide(color: neutral.withOpacity(0.3), width: 1),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withOpacity(isDark ? 0.3 : 0.03),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -395,11 +412,7 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                       width: 35,
                       height: 35,
                       alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.close,
-                        size: 28,
-                        color: Color(0xFF333333),
-                      ),
+                      child: Icon(Icons.close, size: 28, color: textPrimary),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -409,7 +422,7 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF333333),
+                        color: textPrimary,
                       ),
                       textAlign: TextAlign.center,
                       maxLines: 2,
@@ -440,7 +453,7 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
-                                color: const Color(0xFF333333),
+                                color: textPrimary,
                               ),
                             ),
                             Text(
@@ -515,7 +528,9 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                      color: isDark
+                                          ? Colors.black87
+                                          : Colors.white,
                                     ),
                                   ),
                                 ),
@@ -526,7 +541,9 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                               _getPartDescription(currentQuestion.part),
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 13,
-                                color: Colors.grey[700],
+                                color: isDark
+                                    ? Colors.grey.shade300
+                                    : Colors.grey[700],
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
@@ -612,13 +629,15 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                                   ],
                                 ),
                                 child: _isLoadingAudio
-                                    ? const Padding(
-                                        padding: EdgeInsets.all(16),
+                                    ? Padding(
+                                        padding: const EdgeInsets.all(16),
                                         child: CircularProgressIndicator(
                                           strokeWidth: 3,
                                           valueColor:
                                               AlwaysStoppedAnimation<Color>(
-                                                Colors.white,
+                                                isDark
+                                                    ? Colors.black87
+                                                    : Colors.white,
                                               ),
                                         ),
                                       )
@@ -626,7 +645,9 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                                         _isPlaying
                                             ? Icons.pause
                                             : Icons.play_arrow,
-                                        color: Colors.white,
+                                        color: isDark
+                                            ? Colors.black87
+                                            : Colors.white,
                                         size: 32,
                                       ),
                               ),
@@ -640,7 +661,9 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                                 SliderTheme(
                                   data: SliderThemeData(
                                     activeTrackColor: primary,
-                                    inactiveTrackColor: Colors.grey[300],
+                                    inactiveTrackColor: isDark
+                                        ? Colors.grey.shade700
+                                        : Colors.grey[300],
                                     thumbColor: primary,
                                     overlayColor: primary.withOpacity(0.2),
                                     trackHeight: 4,
@@ -673,14 +696,14 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                                         _formatDuration(_position),
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 12,
-                                          color: Colors.grey[600],
+                                          color: textSecondary,
                                         ),
                                       ),
                                       Text(
                                         _formatDuration(_duration),
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 12,
-                                          color: Colors.grey[600],
+                                          color: textSecondary,
                                         ),
                                       ),
                                     ],
@@ -699,9 +722,11 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                           width: double.infinity,
                           height: 220,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
+                            color: isDark
+                                ? Colors.grey.shade800
+                                : Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey.shade300),
+                            border: Border.all(color: border),
                           ),
                           child:
                               currentQuestion.imageUrl != null &&
@@ -737,10 +762,10 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2563EB).withOpacity(0.05),
+                          color: blueBg,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: const Color(0xFF2563EB).withOpacity(0.2),
+                            color: blueColor.withOpacity(0.2),
                             width: 1,
                           ),
                         ),
@@ -755,7 +780,7 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                                     vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF2563EB),
+                                    color: blueColor,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -792,9 +817,11 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.grey[100],
+                          color: isDark
+                              ? const Color(0xFF2C2C2C)
+                              : Colors.grey[100],
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!),
+                          border: Border.all(color: border),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -834,7 +861,7 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF333333),
+                        color: textPrimary,
                         height: 1.4,
                       ),
                     ),
@@ -859,10 +886,10 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? primary.withOpacity(0.1)
-                                  : Colors.white,
+                                  : surface,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: isSelected ? primary : Colors.grey[300]!,
+                                color: isSelected ? primary : border,
                                 width: 2,
                               ),
                             ),
@@ -919,7 +946,7 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
             // Bottom Navigation
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFF9F9F9),
+                color: background,
                 border: Border(
                   top: BorderSide(color: neutral.withOpacity(0.5), width: 1),
                 ),
@@ -976,13 +1003,13 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                         disabledBackgroundColor: neutral,
                       ),
                       child: _isSubmitting
-                          ? const SizedBox(
+                          ? SizedBox(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
+                                  isDark ? Colors.black87 : Colors.white,
                                 ),
                               ),
                             )
@@ -1010,120 +1037,137 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
   void _showExitDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Warning Icon
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: Colors.orange.shade50,
-                shape: BoxShape.circle,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Warning Icon
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.orange.shade600,
+                  size: 32,
+                ),
               ),
-              child: Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.orange.shade600,
-                size: 32,
+              const SizedBox(height: 16),
+              // Title
+              Text(
+                'Exit Test?',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : const Color(0xFF333333),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            // Title
-            Text(
-              'Exit Test?',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF333333),
+              const SizedBox(height: 8),
+              // Message
+              Text(
+                'Your progress will not be saved. Are you sure you want to exit?',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  color: isDark ? Colors.grey.shade400 : Colors.grey[600],
+                  height: 1.4,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            // Message
-            Text(
-              'Your progress will not be saved. Are you sure you want to exit?',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 14,
-                color: Colors.grey[600],
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF0F0F0),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 24),
+              // Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isDark
+                            ? Colors.grey.shade800
+                            : const Color(0xFFF0F0F0),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      'Continue Test',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF333333),
+                      child: Text(
+                        'Continue Test',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF333333),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Close dialog
-                      Navigator.pop(context); // Exit test screen
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.shade500,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context); // Close dialog
+                        Navigator.pop(context); // Exit test screen
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade500,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      'Exit',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                      child: Text(
+                        'Exit',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Future<void> _submitTest() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_selectedAnswers.length < widget.test.questions.length) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
             'Incomplete Test',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+            style: GoogleFonts.plusJakartaSans(
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
           ),
           content: Text(
             'You have ${widget.test.questions.length - _selectedAnswers.length} unanswered questions. Submit anyway?',
-            style: GoogleFonts.plusJakartaSans(),
+            style: GoogleFonts.plusJakartaSans(
+              color: isDark ? Colors.grey.shade300 : Colors.black87,
+            ),
           ),
           actions: [
             TextButton(
@@ -1131,7 +1175,7 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
               child: Text(
                 'Cancel',
                 style: GoogleFonts.plusJakartaSans(
-                  color: Colors.grey[600],
+                  color: isDark ? Colors.grey.shade400 : Colors.grey[600],
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -1144,7 +1188,7 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
               child: Text(
                 'Submit',
                 style: GoogleFonts.plusJakartaSans(
-                  color: const Color(0xFF059669),
+                  color: isDark ? Colors.greenAccent : const Color(0xFF059669),
                   fontWeight: FontWeight.bold,
                 ),
               ),

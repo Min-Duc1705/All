@@ -10,18 +10,22 @@ class AllAchievementsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primary = Color(0xFF4A90E2);
-    const background = Color(0xFFF9F9F9);
-    const textColor = Color(0xFF100d1b);
-    const textMuted = Color(0xFF888888);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = isDark ? const Color(0xFF60A5FA) : const Color(0xFF4A90E2);
+    final background = isDark
+        ? const Color(0xFF18181B)
+        : const Color(0xFFF9F9F9);
+    final surface = isDark ? const Color(0xFF27272A) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF100d1b);
+    final textMuted = isDark ? Colors.grey.shade400 : const Color(0xFF888888);
 
     return Scaffold(
       backgroundColor: background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: textColor),
+          icon: Icon(Icons.arrow_back_ios, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -96,6 +100,7 @@ class AllAchievementsScreen extends StatelessWidget {
                     isLocked: false,
                     textColor: textColor,
                     textMuted: textMuted,
+                    isDark: isDark,
                   ),
                   const SizedBox(height: 24),
                 ],
@@ -115,6 +120,7 @@ class AllAchievementsScreen extends StatelessWidget {
                     isLocked: true,
                     textColor: textColor,
                     textMuted: textMuted,
+                    isDark: isDark,
                   ),
                 ],
 
@@ -270,6 +276,7 @@ class AllAchievementsScreen extends StatelessWidget {
     required bool isLocked,
     required Color textColor,
     required Color textMuted,
+    required bool isDark,
   }) {
     return GridView.builder(
       shrinkWrap: true,
@@ -287,6 +294,7 @@ class AllAchievementsScreen extends StatelessWidget {
           isLocked: isLocked,
           textColor: textColor,
           textMuted: textMuted,
+          isDark: isDark,
         );
       },
     );
@@ -297,22 +305,23 @@ class AllAchievementsScreen extends StatelessWidget {
     required bool isLocked,
     required Color textColor,
     required Color textMuted,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF27272A) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isLocked
-              ? Colors.grey.shade200
+              ? (isDark ? Colors.grey.shade700 : Colors.grey.shade200)
               : const Color(0xFF2E7D32).withOpacity(0.3),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
             color: isLocked
-                ? Colors.grey.withOpacity(0.1)
+                ? Colors.transparent
                 : Colors.green.withOpacity(0.15),
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -329,10 +338,10 @@ class AllAchievementsScreen extends StatelessWidget {
             padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white,
+              color: isDark ? const Color(0xFF27272A) : Colors.white,
               border: Border.all(
                 color: isLocked
-                    ? Colors.grey.shade300
+                    ? (isDark ? Colors.grey.shade700 : Colors.grey.shade300)
                     : const Color(0xFF2E7D32),
                 width: 2,
               ),
@@ -348,8 +357,8 @@ class AllAchievementsScreen extends StatelessWidget {
             ),
             child: ClipOval(
               child: Container(
-                color: Colors.white,
-                child: _buildAchievementIcon(achievement, isLocked),
+                color: isDark ? const Color(0xFF27272A) : Colors.white,
+                child: _buildAchievementIcon(achievement, isLocked, isDark),
               ),
             ),
           ),
@@ -397,7 +406,11 @@ class AllAchievementsScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildAchievementIcon(Achievement achievement, bool isLocked) {
+  Widget _buildAchievementIcon(
+    Achievement achievement,
+    bool isLocked,
+    bool isDark,
+  ) {
     if (isLocked) {
       return SizedBox(
         width: 60,
@@ -412,9 +425,12 @@ class AllAchievementsScreen extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF27272A) : Colors.white,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey.shade300, width: 1),
+                  border: Border.all(
+                    color: isDark ? Colors.grey.shade600 : Colors.grey.shade300,
+                    width: 1,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),

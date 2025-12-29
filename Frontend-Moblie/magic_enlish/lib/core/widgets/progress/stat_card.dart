@@ -85,12 +85,18 @@ class _StatCardState extends State<StatCard>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF3D3D3D) : Colors.grey.shade300;
+    final textPrimary = isDark ? Colors.white : const Color(0xFF333333);
+    final textSecondary = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,13 +171,14 @@ class _StatCardState extends State<StatCard>
                     style: GoogleFonts.lexend(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
+                      color: textPrimary,
                     ),
                   ),
                   Text(
                     widget.title2,
                     style: GoogleFonts.lexend(
                       fontSize: 13,
-                      color: Colors.grey.shade600,
+                      color: textSecondary,
                     ),
                   ),
                 ],
@@ -188,6 +195,7 @@ class _StatCardState extends State<StatCard>
               fontSize: 20,
               fontWeight: FontWeight.w800,
               height: 1.1,
+              color: textPrimary,
             ),
           ),
         ],

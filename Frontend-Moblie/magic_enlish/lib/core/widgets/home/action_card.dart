@@ -19,12 +19,18 @@ class ActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF3D3D3D) : Colors.grey.shade300;
+    final textPrimary = isDark ? Colors.white : const Color(0xFF333333);
+    final textSecondary = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,6 +44,7 @@ class ActionCard extends StatelessWidget {
                 style: GoogleFonts.lexend(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: textPrimary,
                 ),
               ),
             ],
@@ -45,10 +52,7 @@ class ActionCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             subtitle,
-            style: GoogleFonts.lexend(
-              fontSize: 14,
-              color: Colors.grey.shade600,
-            ),
+            style: GoogleFonts.lexend(fontSize: 14, color: textSecondary),
           ),
           const SizedBox(height: 14),
           Row(children: buttons),

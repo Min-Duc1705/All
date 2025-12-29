@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:magic_enlish/core/services/api_client.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -20,7 +20,7 @@ class HomeStatsService {
       final String url = dotenv.env['Backend_URL'] ?? '';
       final headers = await _getHeaders();
 
-      final response = await http.get(
+      final response = await ApiClient.get(
         Uri.parse('$url/api/v1/vocabulary/home-stats'),
         headers: headers,
       );

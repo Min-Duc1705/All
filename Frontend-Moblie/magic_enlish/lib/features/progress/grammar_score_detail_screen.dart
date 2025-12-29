@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:magic_enlish/data/services/progress_service.dart';
 
 class GrammarScoreDetailScreen extends StatefulWidget {
   final int avgScore;
@@ -9,11 +10,14 @@ class GrammarScoreDetailScreen extends StatefulWidget {
   const GrammarScoreDetailScreen({super.key, required this.avgScore});
 
   @override
-  State<GrammarScoreDetailScreen> createState() => _GrammarScoreDetailScreenState();
+  State<GrammarScoreDetailScreen> createState() =>
+      _GrammarScoreDetailScreenState();
 }
 
 class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
+  final ProgressService _progressService = ProgressService();
   List<int> _dailyScores = [];
+  List<DateTime> _dailyDates = [];
   bool _isLoading = true;
 
   @override
@@ -22,14 +26,28 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
     _loadData();
   }
 
-  void _loadData() {
-    Future.delayed(const Duration(milliseconds: 500), () {
+  Future<void> _loadData() async {
+    try {
+      final stats = await _progressService.getDailyGrammarScoreStats(days: 7);
       setState(() {
-        // Sample data for last 7 days
-        _dailyScores = [72, 85, 78, 92, 88, 76, 95];
+        _dailyScores = stats
+            .map((e) => (e['avgScore'] as num).toInt())
+            .toList();
+        _dailyDates = stats
+            .map((e) => DateTime.parse(e['date'] as String))
+            .toList();
         _isLoading = false;
       });
-    });
+    } catch (e) {
+      setState(() {
+        _dailyScores = List.filled(7, 0);
+        _dailyDates = List.generate(
+          7,
+          (i) => DateTime.now().subtract(Duration(days: 6 - i)),
+        );
+        _isLoading = false;
+      });
+    }
   }
 
   Color _getScoreColor(int score) {
@@ -40,15 +58,20 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background = isDark
+        ? const Color(0xFF18181B)
+        : const Color(0xFFF8F9FA);
+    final surface = isDark ? const Color(0xFF27272A) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF333333);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF333333)),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -56,7 +79,7 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
           style: GoogleFonts.lexend(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF333333),
+            color: textColor,
           ),
         ),
         centerTitle: true,
@@ -125,9 +148,9 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // This Week Stats
                   Row(
                     children: [
@@ -136,8 +159,10 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
                           'Highest',
                           '${_dailyScores.reduce((a, b) => a > b ? a : b)}',
                           'points',
-                          Colors.green.shade100,
-                          Colors.green,
+                          isDark
+                              ? Colors.green.shade900.withOpacity(0.3)
+                              : Colors.green.shade100,
+                          isDark ? Colors.green.shade300 : Colors.green,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -146,32 +171,34 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
                           'Lowest',
                           '${_dailyScores.reduce((a, b) => a < b ? a : b)}',
                           'points',
-                          Colors.red.shade100,
-                          Colors.red,
+                          isDark
+                              ? Colors.red.shade900.withOpacity(0.3)
+                              : Colors.red.shade100,
+                          isDark ? Colors.red.shade300 : Colors.red,
                         ),
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   Text(
                     'Daily Scores (Last 7 Days)',
                     style: GoogleFonts.lexend(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF333333),
+                      color: textColor,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Line Chart with Area
                   Container(
                     height: 220,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: surface,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
@@ -191,7 +218,10 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
                               return touchedSpots.map((spot) {
                                 return LineTooltipItem(
                                   '${spot.y.toInt()} points',
-                                  GoogleFonts.lexend(color: Colors.white, fontSize: 12),
+                                  GoogleFonts.lexend(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
                                 );
                               }).toList();
                             },
@@ -202,9 +232,13 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
                           drawVerticalLine: false,
                           horizontalInterval: 20,
                           getDrawingHorizontalLine: (value) {
-                            Color lineColor = Colors.grey.shade200;
-                            if (value == 60) lineColor = Colors.orange.withOpacity(0.3);
-                            if (value == 80) lineColor = Colors.green.withOpacity(0.3);
+                            Color lineColor = isDark
+                                ? Colors.grey.shade700
+                                : Colors.grey.shade200;
+                            if (value == 60)
+                              lineColor = Colors.orange.withOpacity(0.3);
+                            if (value == 80)
+                              lineColor = Colors.green.withOpacity(0.3);
                             return FlLine(color: lineColor, strokeWidth: 1);
                           },
                         ),
@@ -213,16 +247,35 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
                             sideTitles: SideTitles(
                               showTitles: true,
                               getTitlesWidget: (value, meta) {
-                                final day = now.subtract(Duration(days: 6 - value.toInt()));
+                                final index = value.toInt();
+                                if (index < 0 || index >= _dailyDates.length) {
+                                  return const SizedBox.shrink();
+                                }
+                                final day = _dailyDates[index];
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 8),
-                                  child: Text(
-                                    DateFormat('E').format(day),
-                                    style: GoogleFonts.lexend(fontSize: 12, color: Colors.grey),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        DateFormat('E').format(day),
+                                        style: GoogleFonts.lexend(
+                                          fontSize: 11,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                      Text(
+                                        DateFormat('dd/MM').format(day),
+                                        style: GoogleFonts.lexend(
+                                          fontSize: 9,
+                                          color: Colors.grey.shade500,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 );
                               },
-                              reservedSize: 32,
+                              reservedSize: 48,
                             ),
                           ),
                           leftTitles: AxisTitles(
@@ -233,28 +286,46 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
                               getTitlesWidget: (value, meta) {
                                 return Text(
                                   value.toInt().toString(),
-                                  style: GoogleFonts.lexend(fontSize: 11, color: Colors.grey),
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 11,
+                                    color: Colors.grey,
+                                  ),
                                 );
                               },
                             ),
                           ),
-                          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
                         ),
                         borderData: FlBorderData(show: false),
                         lineBarsData: [
                           LineChartBarData(
-                            spots: List.generate(7, (i) => FlSpot(i.toDouble(), _dailyScores[i].toDouble())),
+                            spots: List.generate(
+                              7,
+                              (i) => FlSpot(
+                                i.toDouble(),
+                                _dailyScores[i].toDouble(),
+                              ),
+                            ),
                             isCurved: true,
                             gradient: LinearGradient(
-                              colors: [Colors.pink.shade400, Colors.purple.shade400],
+                              colors: [
+                                Colors.pink.shade400,
+                                Colors.purple.shade400,
+                              ],
                             ),
                             barWidth: 3,
                             isStrokeCapRound: true,
                             dotData: FlDotData(
                               show: true,
                               getDotPainter: (spot, percent, barData, index) {
-                                final color = _getScoreColor(_dailyScores[index]);
+                                final color = _getScoreColor(
+                                  _dailyScores[index],
+                                );
                                 return FlDotCirclePainter(
                                   radius: 5,
                                   color: Colors.white,
@@ -279,14 +350,14 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Score Legend
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: surface,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -297,7 +368,7 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
                           style: GoogleFonts.lexend(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF333333),
+                            color: textColor,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -315,7 +386,13 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
     );
   }
 
-  Widget _statCard(String title, String value, String unit, Color bgColor, Color textColor) {
+  Widget _statCard(
+    String title,
+    String value,
+    String unit,
+    Color bgColor,
+    Color textColor,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -325,10 +402,26 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: GoogleFonts.lexend(fontSize: 12, color: textColor)),
+          Text(
+            title,
+            style: GoogleFonts.lexend(fontSize: 12, color: textColor),
+          ),
           const SizedBox(height: 4),
-          Text(value, style: GoogleFonts.lexend(fontSize: 24, fontWeight: FontWeight.bold, color: textColor)),
-          Text(unit, style: GoogleFonts.lexend(fontSize: 12, color: textColor.withOpacity(0.7))),
+          Text(
+            value,
+            style: GoogleFonts.lexend(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
+          Text(
+            unit,
+            style: GoogleFonts.lexend(
+              fontSize: 12,
+              color: textColor.withOpacity(0.7),
+            ),
+          ),
         ],
       ),
     );
@@ -343,9 +436,15 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
-        Text(range, style: GoogleFonts.lexend(fontSize: 13, fontWeight: FontWeight.w500)),
+        Text(
+          range,
+          style: GoogleFonts.lexend(fontSize: 13, fontWeight: FontWeight.w500),
+        ),
         const SizedBox(width: 8),
-        Text(label, style: GoogleFonts.lexend(fontSize: 13, color: Colors.grey)),
+        Text(
+          label,
+          style: GoogleFonts.lexend(fontSize: 13, color: Colors.grey),
+        ),
       ],
     );
   }

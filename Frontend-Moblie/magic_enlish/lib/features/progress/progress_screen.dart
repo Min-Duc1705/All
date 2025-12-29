@@ -35,8 +35,12 @@ class _ProgressPageState extends State<ProgressPage> {
   Widget build(BuildContext context) {
     const primary = Color(0xFF4A90E2);
     const accent = Color(0xFFF8D648);
-    const background = Color(0xFFF9F9F9);
-    const textColor = Color(0xFF100d1b);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background = isDark
+        ? const Color(0xFF18181B)
+        : const Color(0xFFF9F9F9);
+    final cardColor = isDark ? const Color(0xFF27272A) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF100d1b);
 
     return Consumer<ProgressProvider>(
       builder: (context, progressProvider, child) {
@@ -47,6 +51,7 @@ class _ProgressPageState extends State<ProgressPage> {
               children: [
                 // Header
                 Container(
+                  color: cardColor,
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: Row(
                     children: [
@@ -70,7 +75,9 @@ class _ProgressPageState extends State<ProgressPage> {
                             height: 40,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.grey.shade200,
+                              color: isDark
+                                  ? const Color(0xFF3F3F46)
+                                  : Colors.grey.shade200,
                             ),
                             child: ClipOval(
                               child: avatarUrl != null
@@ -78,13 +85,21 @@ class _ProgressPageState extends State<ProgressPage> {
                                       avatarUrl,
                                       fit: BoxFit.cover,
                                       errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              const Icon(
-                                                Icons.person,
-                                                size: 24,
-                                              ),
+                                          (context, error, stackTrace) => Icon(
+                                            Icons.person,
+                                            size: 24,
+                                            color: isDark
+                                                ? Colors.grey.shade300
+                                                : Colors.grey,
+                                          ),
                                     )
-                                  : const Icon(Icons.person, size: 24),
+                                  : Icon(
+                                      Icons.person,
+                                      size: 24,
+                                      color: isDark
+                                          ? Colors.grey.shade300
+                                          : Colors.grey,
+                                    ),
                             ),
                           );
                         },
@@ -207,6 +222,7 @@ class _ProgressPageState extends State<ProgressPage> {
   ) {
     final allAchievements = progressProvider.allAchievements;
     final unlockedIds = progressProvider.unlockedAchievementIds;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,7 +254,9 @@ class _ProgressPageState extends State<ProgressPage> {
                     style: GoogleFonts.lexend(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFF4A90E2),
+                      color: isDark
+                          ? const Color(0xFF60A5FA)
+                          : const Color(0xFF4A90E2),
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -345,8 +363,9 @@ class _ProgressPageState extends State<ProgressPage> {
     required Achievement achievement,
     required bool isLocked,
   }) {
-    const textColor = Color(0xFF100d1b);
-    const textMuted = Color(0xFF888888);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : const Color(0xFF100d1b);
+    final textMuted = isDark ? Colors.grey.shade400 : const Color(0xFF888888);
 
     return Container(
       width: 112,
@@ -359,10 +378,10 @@ class _ProgressPageState extends State<ProgressPage> {
             padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white,
+              color: isDark ? const Color(0xFF27272A) : Colors.white,
               border: Border.all(
                 color: isLocked
-                    ? Colors.grey.shade300
+                    ? (isDark ? Colors.grey.shade700 : Colors.grey.shade300)
                     : const Color(0xFF2E7D32),
                 width: 2,
               ),
@@ -378,7 +397,7 @@ class _ProgressPageState extends State<ProgressPage> {
             ),
             child: ClipOval(
               child: Container(
-                color: Colors.white,
+                color: isDark ? const Color(0xFF27272A) : Colors.white,
                 child: _buildAchievementIcon(achievement, isLocked),
               ),
             ),
@@ -392,7 +411,9 @@ class _ProgressPageState extends State<ProgressPage> {
             style: GoogleFonts.lexend(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: isLocked ? textMuted : textColor,
+              color: isLocked
+                  ? (isDark ? Colors.grey.shade500 : textMuted)
+                  : textColor,
             ),
           ),
           Text(
@@ -438,9 +459,16 @@ class _ProgressPageState extends State<ProgressPage> {
               child: Container(
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF27272A)
+                      : Colors.white,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey.shade300, width: 1),
+                  border: Border.all(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey.shade600
+                        : Colors.grey.shade300,
+                    width: 1,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),

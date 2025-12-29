@@ -10,13 +10,21 @@ class HelpSupportScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF4F6F9);
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF333333);
+    final subTextColor = isDark ? Colors.grey[400] : Colors.grey[600];
+
     return Scaffold(
-      backgroundColor: background,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: cardColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF333333)),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -24,7 +32,7 @@ class HelpSupportScreen extends StatelessWidget {
           style: GoogleFonts.lexend(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF333333),
+            color: textColor,
           ),
         ),
         centerTitle: true,
@@ -81,25 +89,37 @@ class HelpSupportScreen extends StatelessWidget {
               style: GoogleFonts.lexend(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF333333),
+                color: textColor,
               ),
             ),
             const SizedBox(height: 12),
             _buildFaqItem(
               'How do I reset my password?',
               'Go to Settings > Account > Change Password. Enter your current password and set a new one.',
+              cardColor,
+              textColor,
+              subTextColor,
             ),
             _buildFaqItem(
               'How can I track my learning progress?',
               'Visit the Dashboard to see your learning statistics, completed lessons, and achievements.',
+              cardColor,
+              textColor,
+              subTextColor,
             ),
             _buildFaqItem(
               'How do I enable push notifications?',
               'Go to Profile > General > Push Notifications and toggle it on.',
+              cardColor,
+              textColor,
+              subTextColor,
             ),
             _buildFaqItem(
               'Can I learn offline?',
               'Yes! Download lessons when connected to the internet and access them anytime offline.',
+              cardColor,
+              textColor,
+              subTextColor,
             ),
             const SizedBox(height: 24),
 
@@ -109,7 +129,7 @@ class HelpSupportScreen extends StatelessWidget {
               style: GoogleFonts.lexend(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF333333),
+                color: textColor,
               ),
             ),
             const SizedBox(height: 12),
@@ -118,18 +138,27 @@ class HelpSupportScreen extends StatelessWidget {
               'Email Support',
               'support@magicenglish.com',
               () {},
+              cardColor,
+              textColor,
+              subTextColor,
             ),
             _buildContactItem(
               Icons.chat_bubble_outline,
               'Live Chat',
               'Available 24/7',
               () {},
+              cardColor,
+              textColor,
+              subTextColor,
             ),
             _buildContactItem(
               Icons.phone_outlined,
               'Phone Support',
               '+84 123 456 789',
               () {},
+              cardColor,
+              textColor,
+              subTextColor,
             ),
             const SizedBox(height: 24),
 
@@ -139,7 +168,7 @@ class HelpSupportScreen extends StatelessWidget {
               style: GoogleFonts.lexend(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF333333),
+                color: textColor,
               ),
             ),
             const SizedBox(height: 12),
@@ -150,6 +179,8 @@ class HelpSupportScreen extends StatelessWidget {
                     Icons.video_library_outlined,
                     'Video Tutorials',
                     () {},
+                    cardColor,
+                    textColor,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -158,6 +189,8 @@ class HelpSupportScreen extends StatelessWidget {
                     Icons.article_outlined,
                     'User Guide',
                     () {},
+                    cardColor,
+                    textColor,
                   ),
                 ),
               ],
@@ -170,6 +203,8 @@ class HelpSupportScreen extends StatelessWidget {
                     Icons.forum_outlined,
                     'Community Forum',
                     () {},
+                    cardColor,
+                    textColor,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -178,6 +213,8 @@ class HelpSupportScreen extends StatelessWidget {
                     Icons.feedback_outlined,
                     'Send Feedback',
                     () {},
+                    cardColor,
+                    textColor,
                   ),
                 ),
               ],
@@ -188,7 +225,13 @@ class HelpSupportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFaqItem(String question, String answer) {
+  Widget _buildFaqItem(
+    String question,
+    String answer,
+    Color cardColor,
+    Color textColor,
+    Color? subTextColor,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -201,12 +244,14 @@ class HelpSupportScreen extends StatelessWidget {
       child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        iconColor: textColor,
+        collapsedIconColor: textColor,
         title: Text(
           question,
           style: GoogleFonts.lexend(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF333333),
+            color: textColor,
           ),
         ),
         children: [
@@ -214,7 +259,7 @@ class HelpSupportScreen extends StatelessWidget {
             answer,
             style: GoogleFonts.lexend(
               fontSize: 13,
-              color: Colors.grey[600],
+              color: subTextColor,
               height: 1.5,
             ),
           ),
@@ -228,6 +273,9 @@ class HelpSupportScreen extends StatelessWidget {
     String title,
     String subtitle,
     VoidCallback onTap,
+    Color cardColor,
+    Color textColor,
+    Color? subTextColor,
   ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -252,12 +300,12 @@ class HelpSupportScreen extends StatelessWidget {
           style: GoogleFonts.lexend(
             fontSize: 15,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF333333),
+            color: textColor,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: GoogleFonts.lexend(fontSize: 13, color: Colors.grey[600]),
+          style: GoogleFonts.lexend(fontSize: 13, color: subTextColor),
         ),
         trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
         onTap: onTap,
@@ -265,7 +313,13 @@ class HelpSupportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickLink(IconData icon, String title, VoidCallback onTap) {
+  Widget _buildQuickLink(
+    IconData icon,
+    String title,
+    VoidCallback onTap,
+    Color cardColor,
+    Color textColor,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -287,7 +341,7 @@ class HelpSupportScreen extends StatelessWidget {
               style: GoogleFonts.lexend(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF333333),
+                color: textColor,
               ),
             ),
           ],

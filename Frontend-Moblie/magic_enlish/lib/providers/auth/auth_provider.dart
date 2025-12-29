@@ -20,6 +20,9 @@ class AuthProvider with ChangeNotifier {
     await prefs.setString('user_name', user.name);
     await prefs.setString('user_email', user.email);
     await prefs.setString('access_token', user.accessToken);
+    if (user.refreshToken != null) {
+      await prefs.setString('refresh_token', user.refreshToken!);
+    }
 
     // chỉ persist avatar khi có giá trị thực
     if (user.avatarUrl != null && user.avatarUrl!.isNotEmpty) {
@@ -39,6 +42,7 @@ class AuthProvider with ChangeNotifier {
     final userName = prefs.getString('user_name');
     final userEmail = prefs.getString('user_email');
     final accessToken = prefs.getString('access_token');
+    final refreshToken = prefs.getString('refresh_token');
     final avatarUrl = prefs.getString('avatarUrl');
 
     if (userId != null &&
@@ -50,6 +54,7 @@ class AuthProvider with ChangeNotifier {
         name: userName,
         email: userEmail,
         accessToken: accessToken,
+        refreshToken: refreshToken,
         avatarUrl: avatarUrl,
       );
       notifyListeners();

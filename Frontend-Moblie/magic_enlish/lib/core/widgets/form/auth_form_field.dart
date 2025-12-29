@@ -13,12 +13,18 @@ class AuthFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: GoogleFonts.lexend(fontSize: 16, fontWeight: FontWeight.w500),
+          style: GoogleFonts.lexend(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: isDark ? Colors.white : Colors.black,
+          ),
         ),
         const SizedBox(height: 8),
         inputWidget,

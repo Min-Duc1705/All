@@ -1,5 +1,8 @@
 package vn.project.magic_english.repository;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -7,8 +10,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import vn.project.magic_english.model.Vocabulary;
-
-import java.util.List;
 
 /**
  * Repository interface để thao tác với bảng Vocabulary trong database.
@@ -63,4 +64,15 @@ public interface VocabularyRepository extends JpaRepository<Vocabulary, Long>, J
      */
     @Query("SELECT COUNT(v) FROM Vocabulary v WHERE v.user.id = :userId AND DATE(v.createdAt) = CURRENT_DATE")
     Long countTodayVocabularyByUserId(@Param("userId") Long userId);
+
+    /**
+     * Đếm số từ vựng theo ngày trong khoảng thời gian.
+     * 
+     * @param userId    ID của user cần thống kê
+     * @param startDate Ngày bắt đầu
+     * @return Danh sách mảng [date, count] - ví dụ: [[2024-12-23, 5], [2024-12-24,
+     *         3]]
+     */
+    @Query("SELECT DATE(v.createdAt), COUNT(v) FROM Vocabulary v WHERE v.user.id = :userId AND DATE(v.createdAt) >= :startDate GROUP BY DATE(v.createdAt) ORDER BY DATE(v.createdAt)")
+    List<Object[]> countByUserIdGroupByDate(@Param("userId") Long userId, @Param("startDate") LocalDate startDate);
 }

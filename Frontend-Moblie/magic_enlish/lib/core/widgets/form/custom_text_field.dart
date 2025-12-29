@@ -32,6 +32,13 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   Widget build(BuildContext context) {
     final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fillColor = isDark ? const Color(0xFF2D2D2D) : AppColors.lightBg;
+    final borderColor = isDark ? Colors.grey.shade700 : AppColors.borderColor;
+    final placeholderColor = isDark
+        ? Colors.grey.shade500
+        : AppColors.placeholder;
+    final textColor = isDark ? Colors.white : Colors.black;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,6 +49,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
             style: GoogleFonts.lexend(
               fontSize: 14,
               fontWeight: FontWeight.w500,
+              color: isDark ? Colors.grey.shade300 : null,
             ),
           ),
           const SizedBox(height: 8),
@@ -50,18 +58,19 @@ class _CustomTextFieldState extends State<CustomTextField> {
           controller: widget.controller,
           obscureText: widget.isPassword && !_isPasswordVisible,
           keyboardType: widget.keyboardType,
+          style: TextStyle(color: textColor),
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppColors.lightBg,
+            fillColor: fillColor,
             hintText: widget.hint,
-            hintStyle: GoogleFonts.lexend(color: AppColors.placeholder),
+            hintStyle: GoogleFonts.lexend(color: placeholderColor),
             suffixIcon: widget.isPassword
                 ? IconButton(
                     icon: Icon(
                       _isPasswordVisible
                           ? Icons.visibility
                           : Icons.visibility_off,
-                      color: AppColors.placeholder,
+                      color: placeholderColor,
                     ),
                     onPressed: () {
                       setState(() => _isPasswordVisible = !_isPasswordVisible);
@@ -74,7 +83,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
             ),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(
-                color: hasError ? Colors.red : AppColors.borderColor,
+                color: hasError ? Colors.red : borderColor,
               ),
               borderRadius: BorderRadius.circular(12),
             ),

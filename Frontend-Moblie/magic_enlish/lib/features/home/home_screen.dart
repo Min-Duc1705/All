@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:magic_enlish/providers/auth/auth_provider.dart';
 import 'package:magic_enlish/providers/vocabulary/vocabulary_provider.dart';
 import 'package:magic_enlish/providers/home/home_stats_provider.dart';
+import 'package:magic_enlish/core/theme/app_colors.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final vocabularyProvider = Provider.of<VocabularyProvider>(context);
     final homeStatsProvider = Provider.of<HomeStatsProvider>(context);
+    final colors = context.colors;
 
     // Get 3 newest words (sorted by createdAt descending)
     final allVocabs = vocabularyProvider.vocabularies.toList();
@@ -52,13 +54,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final recentWords = allVocabs.take(3).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xfff6f6f8),
+      backgroundColor: colors.background,
       bottomNavigationBar: const AppBottomNav(currentIndex: 0),
       body: SafeArea(
         child: Column(
           children: [
             // ---------------- TOP BAR ----------------
-            Padding(
+            Container(
+              color: colors.card,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
@@ -73,13 +76,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: GoogleFonts.lexend(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            color: colors.textPrimary,
                           ),
                         );
                       },
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.calendar_month, color: Colors.black),
+                    icon: Icon(Icons.calendar_month, color: colors.iconPrimary),
                     onPressed: () {},
                   ),
                 ],
