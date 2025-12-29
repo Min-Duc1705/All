@@ -530,25 +530,7 @@ public class TOEICService {
                 if (test.getPart() == null) {
                     test.setPart("Listening"); // Mark as Listening test with multiple parts
                 }
-
-                // Generate image for Part 1 - Photographs using Pollinations AI (free, no API
-                // key needed)
-                if (partValue.toLowerCase().contains("part 1") && passage != null && !passage.isEmpty()) {
-                    try {
-                        // Use Pollinations AI to generate image based on passage description
-                        // Format: https://pollinations.ai/p/{encoded_prompt}
-                        String imagePrompt = "TOEIC test photograph, realistic business workplace scene: " + passage;
-                        String encodedPrompt = java.net.URLEncoder.encode(imagePrompt, "UTF-8");
-                        String imageUrl = "https://image.pollinations.ai/prompt/" + encodedPrompt
-                                + "?width=400&height=300&nologo=true";
-                        question.setImageUrl(imageUrl);
-                        log.info("Generated image URL for TOEIC Part 1 question {}: {}", question.getQuestionNumber(),
-                                imageUrl);
-                    } catch (Exception e) {
-                        log.warn("Failed to generate image for Part 1 question {}: {}", question.getQuestionNumber(),
-                                e.getMessage());
-                    }
-                }
+                // Note: Image generation for Part 1 removed - users will listen to audio only
             }
 
             // Generate audio for Listening tests

@@ -154,7 +154,7 @@ class _GrammarCheckDetailScreenState extends State<GrammarCheckDetailScreen> {
                       Expanded(
                         child: _statCard(
                           'Daily Avg',
-                          '${(_dailyChecks.reduce((a, b) => a + b) / 7).toStringAsFixed(1)}',
+                          (_dailyChecks.reduce((a, b) => a + b) / 7).toStringAsFixed(1),
                           'checks/day',
                           isDark
                               ? Colors.teal.shade900.withOpacity(0.3)

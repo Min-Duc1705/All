@@ -235,10 +235,12 @@ class _GrammarScoreDetailScreenState extends State<GrammarScoreDetailScreen> {
                             Color lineColor = isDark
                                 ? Colors.grey.shade700
                                 : Colors.grey.shade200;
-                            if (value == 60)
+                            if (value == 60) {
                               lineColor = Colors.orange.withOpacity(0.3);
-                            if (value == 80)
+                            }
+                            if (value == 80) {
                               lineColor = Colors.green.withOpacity(0.3);
+                            }
                             return FlLine(color: lineColor, strokeWidth: 1);
                           },
                         ),

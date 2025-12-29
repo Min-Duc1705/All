@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+// cached_network_image import removed - image feature disabled
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../../data/models/toeic/toeic_test.dart';
 import '../../data/services/toeic_service.dart';
@@ -331,37 +331,7 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
     return 'Listen carefully and answer the questions.';
   }
 
-  // Build placeholder widget for Part 1 when no image is available
-  Widget _buildImagePlaceholder(Color primary) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          Icons.image_outlined,
-          size: 64,
-          color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Photograph',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: isDark ? Colors.grey.shade400 : Colors.grey.shade500,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Listen to the audio for descriptions',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 12,
-            color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
-          ),
-        ),
-      ],
-    );
-  }
+  // Image placeholder removed - image feature disabled
 
   @override
   Widget build(BuildContext context) {
@@ -716,40 +686,7 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Part 1 - Show Photograph Image (AI generated or placeholder)
-                      if (_isPart1Photographs(currentQuestion.part)) ...[
-                        Container(
-                          width: double.infinity,
-                          height: 220,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? Colors.grey.shade800
-                                : Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: border),
-                          ),
-                          child:
-                              currentQuestion.imageUrl != null &&
-                                  currentQuestion.imageUrl!.isNotEmpty
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(11),
-                                  child: CachedNetworkImage(
-                                    imageUrl: currentQuestion.imageUrl!,
-                                    fit: BoxFit.cover,
-                                    placeholder: (context, url) => Center(
-                                      child: CircularProgressIndicator(
-                                        color: primary,
-                                      ),
-                                    ),
-                                    errorWidget: (context, url, error) {
-                                      return _buildImagePlaceholder(primary);
-                                    },
-                                  ),
-                                )
-                              : _buildImagePlaceholder(primary),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
+                      // Part 1 - No image display (audio only)
 
                       // Part 2, 3, 4 - Just show "Listen carefully" message (no transcript shown during test)
                       // Transcripts will be shown in the result screen after completing the test
@@ -845,7 +782,7 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                               currentQuestion.passage!,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 14,
-                                color: const Color(0xFF333333),
+                                color: textPrimary,
                                 height: 1.6,
                               ),
                             ),
@@ -902,7 +839,9 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                                     shape: BoxShape.circle,
                                     color: isSelected
                                         ? primary
-                                        : Colors.grey[200],
+                                        : (isDark
+                                              ? Colors.grey[700]
+                                              : Colors.grey[200]),
                                   ),
                                   child: Center(
                                     child: Text(
@@ -911,8 +850,12 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: isSelected
-                                            ? Colors.white
-                                            : Colors.grey[600],
+                                            ? (isDark
+                                                  ? Colors.black
+                                                  : Colors.white)
+                                            : (isDark
+                                                  ? Colors.grey[300]
+                                                  : Colors.grey[600]),
                                       ),
                                     ),
                                   ),
@@ -923,7 +866,7 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                                     answer.answerText,
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 15,
-                                      color: const Color(0xFF333333),
+                                      color: textPrimary,
                                       fontWeight: isSelected
                                           ? FontWeight.w600
                                           : FontWeight.normal,
@@ -971,9 +914,7 @@ class _ToeicTakeTestScreenState extends State<ToeicTakeTestScreen> {
                         ),
                       ),
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(
-                          0xFF333333,
-                        ).withOpacity(0.8),
+                        foregroundColor: textPrimary.withOpacity(0.8),
                       ),
                     ),
                   const SizedBox(width: 8),

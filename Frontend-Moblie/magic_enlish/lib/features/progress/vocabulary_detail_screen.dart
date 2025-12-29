@@ -152,7 +152,7 @@ class _VocabularyDetailScreenState extends State<VocabularyDetailScreen> {
                       Expanded(
                         child: _statCard(
                           'Daily Avg',
-                          '${(_dailyWords.reduce((a, b) => a + b) / 7).toStringAsFixed(1)}',
+                          (_dailyWords.reduce((a, b) => a + b) / 7).toStringAsFixed(1),
                           'words/day',
                           isDark
                               ? Colors.green.shade900.withOpacity(0.3)
