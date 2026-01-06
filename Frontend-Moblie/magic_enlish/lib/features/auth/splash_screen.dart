@@ -22,17 +22,45 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkLoginAndOnboarding() async {
+    print('🚀 ========== SPLASH SCREEN START ==========');
     // Wait for a minimum time to show splash logo
     await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
 
-    // Check if onboarding is completed
     final prefs = await SharedPreferences.getInstance();
+
+    // DEBUG: Print all keys in SharedPreferences
+    print('🚀 All SharedPreferences keys: ${prefs.getKeys()}');
+    print(
+      '🚀 access_token in prefs: ${prefs.getString('access_token') != null}',
+    );
+    print('🚀 user_id in prefs: ${prefs.getInt('user_id')}');
+
+    // ƯU TIÊN 1: Kiểm tra login status TRƯỚC
+    // Nếu đã đăng nhập → đi thẳng HomeScreen (bỏ qua onboarding)
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.loadUser();
+    print('🚀 authProvider.isLoggedIn: ${authProvider.isLoggedIn}');
+
+    if (!mounted) return;
+
+    if (authProvider.isLoggedIn) {
+      print('🚀 User is logged in → Navigating to HomeScreen');
+      // Đánh dấu onboarding đã hoàn thành (vì user đã đăng nhập rồi)
+      await prefs.setBool('onboarding_completed', true);
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
+      return;
+    }
+
+    // ƯU TIÊN 2: Nếu chưa đăng nhập, kiểm tra onboarding
     final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+    print('🚀 onboarding_completed: $onboardingCompleted');
 
     if (!onboardingCompleted) {
-      // First time user - show onboarding
+      print('🚀 → Navigating to OnboardingScreen');
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const OnboardingScreen()),
@@ -41,21 +69,12 @@ class _SplashScreenState extends State<SplashScreen> {
       return;
     }
 
-    // Onboarding completed - check login status
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    await authProvider.loadUser();
-
-    if (!mounted) return;
-
-    if (authProvider.isLoggedIn) {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
-    } else {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
-    }
+    // ƯU TIÊN 3: Onboarding xong nhưng chưa đăng nhập → LoginScreen
+    print('🚀 → Navigating to LoginScreen');
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
+    print('🚀 ========== SPLASH SCREEN END ==========');
   }
 
   @override

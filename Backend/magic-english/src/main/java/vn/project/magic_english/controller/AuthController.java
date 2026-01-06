@@ -222,5 +222,4 @@ public class AuthController {
         resRegister.setName(ericUser.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(resRegister);
     }
-
 }

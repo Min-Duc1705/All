@@ -37,6 +37,7 @@ class AuthProvider with ChangeNotifier {
 
   // Load thông tin user từ SharedPreferences khi mở app
   Future<void> loadUser() async {
+    print('🔐 ========== LOADING USER FROM STORAGE ==========');
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getInt('user_id');
     final userName = prefs.getString('user_name');
@@ -44,6 +45,22 @@ class AuthProvider with ChangeNotifier {
     final accessToken = prefs.getString('access_token');
     final refreshToken = prefs.getString('refresh_token');
     final avatarUrl = prefs.getString('avatarUrl');
+
+    print('🔐 user_id: $userId');
+    print('🔐 user_name: $userName');
+    print('🔐 user_email: $userEmail');
+    print('🔐 access_token exists: ${accessToken != null}');
+    if (accessToken != null && accessToken.length > 20) {
+      debugPrint(
+        '🔐 access_token (first 20 chars): ${accessToken.substring(0, 20)}...',
+      );
+    }
+    print('🔐 refresh_token exists: ${refreshToken != null}');
+    if (refreshToken != null && refreshToken.length > 20) {
+      debugPrint(
+        '🔐 refresh_token (first 20 chars): ${refreshToken.substring(0, 20)}...',
+      );
+    }
 
     if (userId != null &&
         userName != null &&
@@ -57,8 +74,13 @@ class AuthProvider with ChangeNotifier {
         refreshToken: refreshToken,
         avatarUrl: avatarUrl,
       );
+      print('✅ USER LOADED SUCCESSFULLY - isLoggedIn: true');
       notifyListeners();
+    } else {
+      print('❌ USER NOT LOADED - Missing required fields');
+      print('❌ isLoggedIn: false');
     }
+    print('🔐 ================================================');
   }
 
   final AuthRepository _authRepository = AuthRepository();
@@ -78,7 +100,14 @@ class AuthProvider with ChangeNotifier {
     _user = null;
     notifyListeners();
 
+    // Xóa dữ liệu user nhưng GIỮ LẠI onboarding_completed
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await prefs.remove('user_id');
+    await prefs.remove('user_name');
+    await prefs.remove('user_email');
+    await prefs.remove('access_token');
+    await prefs.remove('refresh_token');
+    await prefs.remove('avatarUrl');
+    await prefs.remove('onboarding_completed'); // Reset onboarding khi logout
   }
 }
