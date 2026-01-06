@@ -1,306 +1,228 @@
-# Magic English - Ứng dụng học tiếng Anh
-
-Ứng dụng học tiếng Anh toàn diện với AI, hỗ trợ luyện thi TOEIC, IELTS, học từ vựng, kiểm tra ngữ pháp và theo dõi tiến độ học tập.
-
-## 🏗️ Cấu trúc thư mục dự án
-
-```
-BTL/
-├── Backend/                          # Backend Spring Boot
-│   └── magic-english/
-│       └── src/main/java/vn/project/magic_english/
-│           ├── MagicEnglishApplication.java    # Entry point
-│           ├── config/                          # Cấu hình (Security, CORS, AI...)
-│           ├── controller/                      # REST API Controllers
-│           ├── model/                           # Entity models (User, TOEIC, IELTS...)
-│           ├── repository/                      # JPA Repositories
-│           ├── service/                         # Business logic services
-│           └── utils/                           # Utilities (Security, Error handling)
-│
-├── Frontend-Moblie/                  # Flutter Mobile App
-│   └── magic_enlish/
-│       └── lib/
-│           ├── main.dart                        # Entry point
-│           ├── core/                            # Core utilities
-│           │   ├── constants/                   # App constants
-│           │   ├── theme/                       # Theme configuration
-│           │   ├── utils/                       # Helper utilities
-│           │   └── widgets/                     # Reusable widgets
-│           ├── data/                            # Data layer
-│           │   ├── models/                      # Data models
-│           │   ├── repositories/                # Data repositories
-│           │   └── services/                    # API services
-│           ├── features/                        # Feature modules
-│           │   ├── auth/                        # Authentication (Login, Register)
-│           │   ├── grammar_checker/             # AI Grammar checking
-│           │   ├── home/                        # Home dashboard
-│           │   ├── news/                        # English news
-│           │   ├── onboarding/                  # Onboarding screens
-│           │   ├── practice/                    # TOEIC & IELTS practice
-│           │   ├── profile/                     # User profile & settings
-│           │   ├── progress/                    # Learning progress tracking
-│           │   └── vocabulary/                  # Vocabulary learning
-│           └── providers/                       # State management providers
-│
-├── Frontend-Web/                     # Web Frontend (nếu có)
-│
-├── docs/                             # Tài liệu dự án
-│
-└── README.md                         # File này
-```
-
-## 🚀 Tính năng chính
-
-- **Luyện thi TOEIC**: Part 1-7, Listening & Reading với AI tạo đề
-- **Luyện thi IELTS**: Writing Task 1 & 2, đánh giá bằng AI
-- **Học từ vựng**: Flashcards, phát âm, ví dụ
-- **Kiểm tra ngữ pháp**: AI phân tích và sửa lỗi
-- **Theo dõi tiến độ**: Biểu đồ, thống kê học tập
-- **Tin tức tiếng Anh**: Đọc tin để cải thiện kỹ năng
-
-## 🛠️ Công nghệ sử dụng
-
-### Backend
-
-- Java 17 + Spring Boot 3
-- Spring Security + JWT
-- Spring Data JPA + PostgreSQL
-- Gemini AI API (text generation)
-- Cloudinary (media storage)
-
-### Frontend Mobile
-
-- Flutter 3.x + Dart
-- Provider (state management)
-- Dio + HTTP (API calls)
-- AudioPlayers (audio playback)
-- Cached Network Image
-
-## 📦 Cài đặt
-
-### Backend
-
-```bash
-cd Backend/magic-english
-./mvnw spring-boot:run
-```
-
-### Frontend Mobile
-
-```bash
-cd Frontend-Moblie/magic_enlish
-flutter pub get
-flutter run
-```
-
-### Build APK
-
-```bash
-flutter build apk --release
-copy build\app\outputs\flutter-apk\app-release.apk MagicEnglish.apk
-```
-
-## 👥 Tác giả
-
-- **Nhóm dự án**: TryHard IT
-
-## 📄 License
-
-MIT License
 <div align="center">
 
-# 🪄 Magic English ✨
+# 🌟 MAGIC ENGLISH - Ứng Dụng Học Tiếng Anh Thông Minh
 
-<img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter"/>
-<img src="https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white" alt="Spring Boot"/>
-<img src="https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white" alt="Dart"/>
-<img src="https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java"/>
+<img src="https://img.shields.io/badge/Spring%20Boot-3.5.8-brightgreen?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Boot">
+<img src="https://img.shields.io/badge/Flutter-3.0+-blue?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter">
+<img src="https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java">
+<img src="https://img.shields.io/badge/MySQL-8.0-blue?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
+<img src="https://img.shields.io/badge/AI-Spring%20AI-purple?style=for-the-badge&logo=openai&logoColor=white" alt="AI">
 
-<br/>
-<br/>
+### 🚀 Nền tảng học tiếng Anh hiện đại với công nghệ AI
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=28&duration=3000&pause=1000&color=6366F1&center=true&vCenter=true&random=false&width=600&lines=Learn+English+the+Smart+Way+🎯;IELTS+%26+TOEIC+Practice+📚;AI-Powered+Learning+🤖;Interactive+Vocabulary+📝" alt="Typing SVG" />
+[Tính năng](#-tính-năng-chính) •
+[Cấu trúc](#-cấu-trúc-dự-án) •
+[Cài đặt](#-hướng-dẫn-cài-đặt) •
+[Đóng góp](#-quy-tắc-commit) •
+[Thành viên](#-team-members--responsibilities)
 
-<br/>
-
-### 📱 Ứng dụng học tiếng Anh thông minh với AI
-
-_Nền tảng học tiếng Anh toàn diện hỗ trợ luyện thi IELTS, TOEIC và phát triển từ vựng_
-
-<br/>
-
-[📲 Tải App](#cài-đặt) · [📖 Tài liệu](#tính-năng-chính) · [🐛 Báo lỗi](../../issues) · [💡 Đề xuất](../../issues)
+</div>
 
 ---
 
-</div>
+## 📖 Giới Thiệu Dự Án
 
-<br/>
+**Magic English** là một ứng dụng học tiếng Anh thông minh, kết hợp công nghệ **AI** và **Machine Learning** để mang đến trải nghiệm học tập cá nhân hóa và hiệu quả.
 
-## 🌟 Giới thiệu
+### 🎯 Mục Tiêu
 
-**Magic English** là ứng dụng di động học tiếng Anh được phát triển bằng Flutter và Spring Boot, tích hợp trí tuệ nhân tạo (AI) để mang đến trải nghiệm học tập cá nhân hóa và hiệu quả.
+- ✨ Cung cấp trải nghiệm học tiếng Anh **tương tác** và **sinh động**
+- 🤖 Ứng dụng **AI** để phân tích và đánh giá khả năng học viên
+- 📱 Giao diện **thân thiện**, dễ sử dụng trên mobile
+- 🎓 Cá nhân hóa lộ trình học tập theo **năng lực từng người**
+- 🏆 Hệ thống **thành tích** và **động lực** học tập
 
-<div align="center">
-
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                                                                  │
-│   📱 Flutter Mobile App                                          │
-│   ├── 🎨 Modern UI/UX Design                                     │
-│   ├── 🌙 Dark/Light Mode                                         │
-│   └── 📊 Progress Tracking                                       │
-│                                                                  │
-│   ⚡ Spring Boot Backend                                          │
-│   ├── 🔐 Secure Authentication                                   │
-│   ├── 🤖 AI Integration                                          │
-│   └── 📈 Analytics & Reports                                     │
-│                                                                  │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-</div>
-
-<br/>
-
-## ✨ Tính năng chính
-
-<table>
-<tr>
-<td width="50%">
-
-### 📚 Luyện thi IELTS
-
-- 🎧 Listening Practice
-- 📖 Reading Comprehension
-- ✍️ Writing Tasks
-- 🗣️ Speaking Exercises
-
-</td>
-<td width="50%">
-
-### 📝 Luyện thi TOEIC
-
-- 👂 Part 1-4: Listening
-- 📄 Part 5-7: Reading
-- ⏱️ Timed Practice Tests
-- 📊 Score Analysis
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### 🔤 Từ vựng thông minh
-
-- 🃏 Flashcards tương tác
-- 🔊 Phát âm chuẩn
-- 📸 Nhận dạng từ vựng qua ảnh
-- 🎮 Game học từ vựng
-
-</td>
-<td width="50%">
-
-### 🤖 AI Assistant
-
-- 💬 Chatbot hỗ trợ học tập
-- ✅ Chấm bài tự động
-- 📝 Gợi ý cải thiện
-- 🎯 Học tập cá nhân hóa
-
-</td>
-</tr>
-</table>
-
-<br/>
-
-## 🛠️ Công nghệ sử dụng
+### 💡 Công Nghệ Sử Dụng
 
 <div align="center">
 
-|                                                Frontend                                                |                                                      Backend                                                       |                                                AI/ML                                                |                                                    Database                                                     |
-| :----------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------: |
-| ![Flutter](https://img.shields.io/badge/Flutter-02569B?style=flat-square&logo=flutter&logoColor=white) | ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=flat-square&logo=spring-boot&logoColor=white) | ![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=flat-square&logo=openai&logoColor=white) | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat-square&logo=postgresql&logoColor=white) |
-|     ![Dart](https://img.shields.io/badge/Dart-0175C2?style=flat-square&logo=dart&logoColor=white)      |          ![Java](https://img.shields.io/badge/Java-ED8B00?style=flat-square&logo=openjdk&logoColor=white)          | ![Gemini](https://img.shields.io/badge/Gemini-8E75B2?style=flat-square&logo=google&logoColor=white) |       ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)       |
+| Backend           | Frontend         | Database       | AI/ML            |
+| ----------------- | ---------------- | -------------- | ---------------- |
+| Spring Boot 3.5.8 | Flutter 3.0+     | MySQL 8.0      | Spring AI        |
+| Spring Security   | Dart             | JPA/Hibernate  | OpenAI API       |
+| OAuth2            | Provider Pattern | Caffeine Cache | Text Recognition |
+| RESTful API       | Material Design  | -              | Google ML Kit    |
 
 </div>
 
-<br/>
+---
 
-## 📂 Cấu trúc dự án
+## 🏗️ Cấu Trúc Dự Án
 
 ```
-📦 BTL_final/
-├── 📱 Mobile/
-│   └── magic_english/          # Flutter Application
-│       ├── lib/                # Source code
-│       ├── android/            # Android configs
-│       ├── ios/                # iOS configs
-│       └── pubspec.yaml        # Dependencies
+BTL_final/
 │
-├── ⚡ Backend/
-│   ├── src/                    # Spring Boot source
-│   ├── build.gradle            # Build configuration
-│   ├── Dockerfile              # Docker config
-│   └── docker-compose.yml      # Docker compose
+├── 📂 Backend/                                    # 🔧 Backend - Spring Boot API
+│   ├── 📂 src/main/java/vn/nhomx/magic_english/
+│   │   ├── 📁 config/                             # ⚙️ Cấu hình (Security, CORS, Cache)
+│   │   ├── 📁 controller/                         # 🎮 REST Controllers
+│   │   ├── 📁 model/                              # 📊 Entities & DTOs
+│   │   ├── 📁 repository/                         # 💾 JPA Repositories
+│   │   ├── 📁 service/                            # 💼 Business Logic & AI
+│   │   ├── 📁 utils/                              # 🛠️ Helper classes
+│   │   └── 📄 MagicEnglishApplication.java        # 🚀 Main Entry Point
+│   │
+│   ├── 📂 src/main/resources/
+│   │   └── 📄 application.yaml                    # ⚙️ Cấu hình ứng dụng
+│   │
+│   ├── � build.gradle                            # � Dependencies
+│   ├── � Dockerfile                              # � Docker config
+│   └── 📄 docker-compose.yml                      # � Docker compose
 │
-└── 🌐 Web/                     # Web application (if any)
+├── 📂 Mobile/magic_english/                       # 📱 Mobile App - Flutter
+│   ├── 📂 lib/
+│   │   ├── 📄 main.dart                           # 🚀 App Entry Point
+│   │   │
+│   │   ├── 📁 core/                               # 🎯 Core functionality
+│   │   │   ├── constants/                         # 📌 App constants
+│   │   │   ├── theme/                             # 🎨 App themes
+│   │   │   ├── utils/                             # 🛠️ Utilities
+│   │   │   └── widgets/                           # 🧩 Shared widgets
+│   │   │
+│   │   ├── 📁 data/                               # 💾 Data Layer
+│   │   │   ├── models/                            # 📊 Data models
+│   │   │   ├── repositories/                      # 🔄 Repositories
+│   │   │   └── services/                          # 🌐 API services
+│   │   │
+│   │   ├── 📁 features/                           # 🎯 Feature Modules
+│   │   │   ├── auth/                              # 🔐 Authentication
+│   │   │   ├── home/                              # 🏠 Home screen
+│   │   │   ├── vocabulary/                        # � Vocabulary
+│   │   │   ├── grammar_checker/                   # ✍️ Grammar checker
+│   │   │   ├── practice/                          # 📝 Practice (IELTS, TOEIC)
+│   │   │   ├── progress/                          # 📊 Progress tracking
+│   │   │   ├── profile/                           # 👤 User profile
+│   │   │   ├── news/                              # 📰 News
+│   │   │   └── onboarding/                        # � Onboarding
+│   │   │
+│   │   └── 📁 providers/                          # � State Management
+│   │
+│   ├── 📂 android/                                # 🤖 Android config
+│   ├── 📂 ios/                                    # 🍎 iOS config
+│   └── 📄 pubspec.yaml                            # 📦 Flutter dependencies
+│
+├── � Web/                                        # 🌐 Web (future)
+│
+└── 📄 README.md                                   # 📖 Documentation
 ```
 
-<br/>
+---
 
-## 🚀 Cài đặt
+## 📋 Nhiệm Vụ Các Thư Mục
 
-### Yêu cầu hệ thống
+### 🔧 Backend (Spring Boot)
 
-| Công cụ | Phiên bản |
-| ------- | --------- |
-| Flutter | >= 3.0.0  |
-| Dart    | >= 3.0.0  |
-| Java    | >= 17     |
-| Docker  | >= 20.0   |
+| Thư mục         | Mô tả             | Trách nhiệm                                          |
+| --------------- | ----------------- | ---------------------------------------------------- |
+| **config/**     | Cấu hình hệ thống | Security, CORS, JWT, Cache, OpenAI integration       |
+| **controller/** | API Endpoints     | Nhận requests, validate, gọi services, trả responses |
+| **model/**      | Data Models       | Entities (JPA), DTOs, Request/Response objects       |
+| **repository/** | Database Access   | JPA Repositories, Custom queries                     |
+| **service/**    | Business Logic    | Core logic, AI integration, data processing          |
+| **utils/**      | Tiện ích          | Validators, formatters, helpers, constants           |
 
-### Hướng dẫn cài đặt
+### 📱 Frontend Mobile (Flutter)
 
-<details>
-<summary><b>📱 Mobile App (Flutter)</b></summary>
+| Thư mục        | Mô tả            | Trách nhiệm                             |
+| -------------- | ---------------- | --------------------------------------- |
+| **core/**      | Core App         | Constants, themes, utilities, widgets   |
+| **data/**      | Data Layer       | Models, repositories, API services      |
+| **features/**  | Features         | UI screens, widgets theo từng chức năng |
+| **providers/** | State Management | Quản lý state với Provider pattern      |
+
+---
+
+## 🚀 Hướng Dẫn Cài Đặt
+
+### 📋 Yêu Cầu Hệ Thống
+
+- ☕ **Java JDK 21+**
+- 🐘 **MySQL 8.0+**
+- 📱 **Flutter SDK 3.0+**
+- 🔧 **Gradle 8.0+**
+- 🎯 **Android Studio** hoặc **VS Code**
+
+### 🔧 Cài Đặt Backend
 
 ```bash
-# Clone repository
-git clone https://github.com/your-repo/magic-english.git
+# 1. Di chuyển vào thư mục backend
+cd Backend
 
-# Di chuyển vào thư mục Mobile
-cd BTL_final/Mobile/magic_english
+# 2. Cấu hình database trong application.yaml
+# Sửa username, password, database name
 
-# Cài đặt dependencies
+# 3. Build project
+gradlew clean build
+
+# 4. Chạy ứng dụng
+gradlew bootRun
+```
+
+Backend sẽ chạy tại: `http://localhost:8080`
+
+### 📱 Cài Đặt Mobile App
+
+```bash
+# 1. Di chuyển vào thư mục mobile
+cd Mobile/magic_english
+
+# 2. Cài đặt dependencies
 flutter pub get
 
-# Chạy ứng dụng
+# 3. Chạy app (Android)
 flutter run
+
+# 4. Build APK
+flutter build apk --release
 ```
 
-</details>
+---
 
-<details>
-<summary><b>⚡ Backend (Spring Boot)</b></summary>
+## 🎨 Quy Tắc Commit
+
+### 📝 Format Commit Message
+
+```
+[<prefix>] <type>(<scope>): <message>
+```
+
+### 🏷️ Prefixes
+
+| Prefix  | Ý nghĩa                 | Ví dụ                                        |
+| ------- | ----------------------- | -------------------------------------------- |
+| `[BE]`  | Backend changes         | `[BE] feat(auth): add JWT authentication`    |
+| `[FE]`  | Frontend/Mobile changes | `[FE] fix(login): fix validation error`      |
+| `[DB]`  | Database changes        | `[DB] update: add user_progress table`       |
+| `[DOC]` | Documentation           | `[DOC] update: improve README structure`     |
+| `[ALL]` | Ảnh hưởng cả BE và FE   | `[ALL] refactor: update API response format` |
+
+### 📦 Types
+
+| Type       | Mô tả             | Khi nào dùng                   |
+| ---------- | ----------------- | ------------------------------ |
+| `feat`     | Tính năng mới     | Thêm feature, API mới          |
+| `fix`      | Sửa bug           | Fix lỗi, bug                   |
+| `refactor` | Tái cấu trúc code | Cải thiện code không đổi logic |
+| `style`    | Style code        | Format, indent, whitespace     |
+| `docs`     | Documentation     | Cập nhật README, comments      |
+| `test`     | Testing           | Thêm/sửa tests                 |
+| `perf`     | Performance       | Cải thiện hiệu suất            |
+| `chore`    | Maintenance       | Update dependencies, configs   |
+| `build`    | Build system      | Gradle, pubspec changes        |
+
+### ✨ Ví Dụ Commits Chuẩn
 
 ```bash
-# Di chuyển vào thư mục Backend
-cd BTL_final/Backend
+# Backend
+[BE] feat(auth): implement OAuth2 login with Google
+[BE] fix(lesson): resolve null pointer in getLessonById
+[BE] refactor(service): optimize AI prompt generation
 
-# Build project
-./gradlew build
-
-# Chạy với Docker
-docker-compose up -d
-
-# Hoặc chạy trực tiếp
-./gradlew bootRun
+# Frontend
+[FE] feat(login): add biometric authentication
+[FE] fix(ui): correct alignment on lesson cards
+[FE] style(home): update color scheme to match design
 ```
-
-</details>
-
-<br/>
 
 ---
 
@@ -310,93 +232,31 @@ docker-compose up -d
 
 <br/>
 
-<table>
-<tr>
-<th>👤 Thành Viên</th>
-<th>🎯 Vai Trò</th>
-<th>🆔 Mã Sinh Viên</th>
-</tr>
-<tr>
-<td align="center">
-<img src="https://img.shields.io/badge/👤-Leader-gold?style=for-the-badge" alt="Leader"/><br/>
-<b>Lê Minh Đức</b>
-</td>
-<td>
-• Quản lý dự án & phân công<br/>
-• Backend Architecture<br/>
-• Spring Security & OAuth2<br/>
-• Database Design
-</td>
-<td align="center"><code>2251172287</code></td>
-</tr>
-<tr>
-<td align="center">
-<img src="https://img.shields.io/badge/👤-Mobile_Lead-blue?style=for-the-badge" alt="Mobile Lead"/><br/>
-<b>Nguyễn Thị Thanh Huyền</b>
-</td>
-<td>
-• Flutter App Architecture<br/>
-• UI/UX Implementation<br/>
-• State Management<br/>
-• Mobile Testing
-</td>
-<td align="center"><code>2251172379</code></td>
-</tr>
-<tr>
-<td align="center">
-<img src="https://img.shields.io/badge/👤-AI/ML_Engineer-purple?style=for-the-badge" alt="AI/ML Engineer"/><br/>
-<b>Ngô Thị Thùy</b>
-</td>
-<td>
-• Tích hợp Spring AI<br/>
-• OpenAI/Gemini API<br/>
-• ML Kit Text Recognition<br/>
-• AI Features Development
-</td>
-<td align="center"><code>2251172517</code></td>
-</tr>
-</table>
+| 👤 Thành Viên              | 🎯 Vai Trò        | 🆔 Mã Sinh Viên |
+| -------------------------- | ----------------- | --------------- |
+| **Lê Minh Đức**            | 👑 Leader         | `2251172287`    |
+| **Nguyễn Thị Thanh Huyền** | 👤 Thành viên     | `2251172379`    |
+| **Ngô Thị Thùy**           | 👤 Thành viên     | `2251172517`    |
 
 </div>
 
-<br/>
-
 ---
+
+## 📞 Liên Hệ & Đóng Góp
 
 <div align="center">
 
-## 📊 Tiến độ dự án
+### 📚 Tài Liệu Tham Khảo
 
-<br/>
-
-```mermaid
-pie showData
-    title Tiến độ hoàn thành
-    "Hoàn thành" : 85
-    "Đang phát triển" : 10
-    "Kế hoạch" : 5
-```
-
-</div>
-
-<br/>
-
-## 📄 License
-
-<div align="center">
-
-Dự án này được phát triển cho mục đích học tập.
-
-<br/>
+- 📖 [Spring Boot Documentation](https://spring.io/projects/spring-boot)
+- 📱 [Flutter Documentation](https://flutter.dev/docs)
+- 🤖 [Spring AI Documentation](https://docs.spring.io/spring-ai/reference/)
+- 🎨 [Material Design Guidelines](https://material.io/design)
 
 ---
 
-<br/>
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=100&section=footer" width="100%"/>
+### ⭐ Nếu thấy dự án hữu ích, hãy cho chúng tôi một Star nhé!
 
 **Made with ❤️ by Magic English Team**
-
-_© 2026 - All Rights Reserved_
 
 </div>
