@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:magic_enlish/data/repositories/auth/auth_repository.dart';
 import 'package:magic_enlish/data/models/auth/ResponseLogin.dart';
+import 'package:magic_enlish/data/services/user_service.dart';
 
 class AuthProvider with ChangeNotifier {
   ResponseLogin? _user;
@@ -74,6 +75,45 @@ class AuthProvider with ChangeNotifier {
         refreshToken: refreshToken,
         avatarUrl: avatarUrl,
       );
+      // ---------------------------------------------------------
+      // [FIX]: Sync latest profile from backend to ensure data consistency
+      // ---------------------------------------------------------
+      if (userId != null && accessToken != null) {
+        try {
+          // Create a UserService instance (assuming it doesn't need constructor params)
+          // If you need DI, pass it via constructor, but here we instantiate directly for brevity
+          // or use the repository if available.
+          final userService = UserService();
+          final userResponse = await userService.getUserById(
+            accessToken,
+            userId,
+          );
+
+          if (userResponse.data != null) {
+            final updatedUser = userResponse.data!;
+            print('🔄 Syncing user profile from backend: ${updatedUser.name}');
+
+            // Create new ResponseLogin with updated fields but keeping secrets
+            final freshUser = ResponseLogin(
+              id: updatedUser.id,
+              name: updatedUser.name,
+              email: updatedUser.email,
+              accessToken: _user!.accessToken, // keep existing token
+              refreshToken: _user!.refreshToken,
+              avatarUrl: updatedUser.avatarUrl,
+            );
+
+            // Update state and persistence
+            await setUser(freshUser);
+            print('✅ User profile synced successfully');
+          }
+        } catch (e) {
+          print('⚠️ Failed to sync user profile: $e');
+          // Ignore error, keep using cached data
+        }
+      }
+      // ---------------------------------------------------------
+
       print('✅ USER LOADED SUCCESSFULLY - isLoggedIn: true');
       notifyListeners();
     } else {

@@ -34,4 +34,25 @@ class UserService {
       (data) => ResponseUpdateUser.fromJson(data as Map<String, dynamic>),
     );
   }
+
+  Future<BackendResponse<ResponseUpdateUser>> getUserById(
+    String token,
+    int id,
+  ) async {
+    final String url = dotenv.env['Backend_URL'] ?? '';
+    final response = await ApiClient.get(
+      Uri.parse('$url/api/v1/users/$id'),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    final jsonData = jsonDecode(response.body);
+
+    return BackendResponse<ResponseUpdateUser>.fromJson(
+      jsonData,
+      (data) => ResponseUpdateUser.fromJson(data as Map<String, dynamic>),
+    );
+  }
 }
