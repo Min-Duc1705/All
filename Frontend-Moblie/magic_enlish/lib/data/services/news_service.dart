@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:webfeed/webfeed.dart';
 import '../models/news/news_article.dart';
 
@@ -20,7 +21,13 @@ class NewsService {
   /// Fetch articles from RSS feed by category
   Future<List<NewsArticle>> fetchArticles(String category) async {
     try {
-      final feedUrl = categoryFeeds[category] ?? categoryFeeds['All']!;
+      String feedUrl = categoryFeeds[category] ?? categoryFeeds['All']!;
+
+      // Use CORS proxy for Web
+      if (kIsWeb) {
+        feedUrl =
+            'https://api.allorigins.win/raw?url=${Uri.encodeComponent(feedUrl)}';
+      }
 
       final response = await http.get(Uri.parse(feedUrl));
 
