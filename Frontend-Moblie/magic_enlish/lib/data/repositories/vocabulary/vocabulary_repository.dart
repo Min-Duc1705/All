@@ -73,9 +73,35 @@ class VocabularyRepository {
     }
   }
 
-  /// Search vocabulary by keyword
-  /// Convenience method that wraps getAllVocabulary
   Future<List<Vocabulary>> searchVocabulary(String keyword) async {
     return getAllVocabulary(search: keyword, page: 1, size: 50);
+  }
+
+  /// Delete vocabulary by ID
+  Future<void> deleteVocabulary(int id) async {
+    try {
+      final response = await _vocabularyService.deleteVocabulary(id);
+
+      if (response.statusCode != 204) {
+        throw Exception(response.message ?? 'Failed to delete word');
+      }
+    } catch (e) {
+      throw Exception('Delete word error: ${e.toString()}');
+    }
+  }
+
+  /// Update vocabulary
+  Future<Vocabulary> updateVocabulary(Vocabulary vocabulary) async {
+    try {
+      final response = await _vocabularyService.updateVocabulary(vocabulary);
+
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data!;
+      } else {
+        throw Exception(response.message ?? 'Failed to update word');
+      }
+    } catch (e) {
+      throw Exception('Update word error: ${e.toString()}');
+    }
   }
 }

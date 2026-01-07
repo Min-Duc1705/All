@@ -9,6 +9,7 @@ import 'package:magic_enlish/core/widgets/vocabulary/vocabulary_card_widget.dart
 import 'package:magic_enlish/features/vocabulary/add_word_screen.dart';
 import 'package:magic_enlish/features/vocabulary/review_word_screen.dart';
 import 'package:magic_enlish/features/news/news_screen.dart';
+import 'package:magic_enlish/data/models/vocabulary/Vocabulary.dart';
 
 class VocabularyPage extends StatefulWidget {
   const VocabularyPage({super.key});
@@ -399,35 +400,145 @@ class _VocabularyPageState extends State<VocabularyPage> {
     );
   }
 
-  void _showVocabularyOptions(BuildContext context, vocab) {
+  void _showVocabularyOptions(BuildContext context, Vocabulary vocab) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: Text('Edit', style: GoogleFonts.lexend()),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Navigate to edit screen
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: Text(
-                'Delete',
-                style: GoogleFonts.lexend(color: Colors.red),
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final bg = isDark ? const Color(0xFF27272A) : Colors.white;
+        final text = isDark ? Colors.white : const Color(0xFF333333);
+
+        return Container(
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Implement delete functionality
-              },
-            ),
-          ],
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.edit, color: Colors.blue),
+                ),
+                title: Text(
+                  'Edit Word',
+                  style: GoogleFonts.lexend(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: text,
+                  ),
+                ),
+                subtitle: Text(
+                  'Update meaning or examples',
+                  style: GoogleFonts.lexend(fontSize: 12, color: Colors.grey),
+                ),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AddWordPage(vocabulary: vocab),
+                    ),
+                  );
+                  if (result == true && mounted) {
+                    // List automatically updates via provider
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.delete_outline, color: Colors.red),
+                ),
+                title: Text(
+                  'Delete Word',
+                  style: GoogleFonts.lexend(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.red,
+                  ),
+                ),
+                subtitle: Text(
+                  'Remove from your collection',
+                  style: GoogleFonts.lexend(fontSize: 12, color: Colors.grey),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showDeleteConfirmation(context, vocab);
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, Vocabulary vocab) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Delete Word?',
+          style: GoogleFonts.lexend(fontWeight: FontWeight.bold),
         ),
+        content: Text(
+          'Are you sure you want to delete "${vocab.word}"? This action cannot be undone.',
+          style: GoogleFonts.lexend(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.lexend(color: Colors.grey),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              if (vocab.id != null) {
+                await context.read<VocabularyProvider>().deleteVocabulary(
+                  vocab.id!,
+                );
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Deleted "${vocab.word}"',
+                        style: GoogleFonts.lexend(),
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: Text('Delete', style: GoogleFonts.lexend(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }

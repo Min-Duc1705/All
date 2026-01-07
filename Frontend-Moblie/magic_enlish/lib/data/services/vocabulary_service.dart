@@ -104,4 +104,58 @@ class VocabularyService {
       (data) => Vocabulary.fromJson(data as Map<String, dynamic>),
     );
   }
+
+  Future<BackendResponse<void>> deleteVocabulary(int id) async {
+    final String url = dotenv.env['Backend_URL'] ?? '';
+    final headers = await _getHeaders();
+
+    final response = await ApiClient.delete(
+      Uri.parse('$url/api/v1/vocabulary/$id'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 204) {
+      return BackendResponse<void>(
+        statusCode: 204,
+        message: 'Deleted successfully',
+        data: null,
+      );
+    } else {
+      // Try to parse error message if available
+      try {
+        final jsonData = jsonDecode(response.body);
+        return BackendResponse<void>.fromJson(jsonData, (data) => null);
+      } catch (_) {
+        throw Exception('Failed to delete vocabulary: ${response.statusCode}');
+      }
+    }
+  }
+
+  Future<BackendResponse<Vocabulary>> updateVocabulary(
+    Vocabulary vocabulary,
+  ) async {
+    final String url = dotenv.env['Backend_URL'] ?? '';
+    final headers = await _getHeaders();
+
+    final response =
+        await ApiClient.put(
+          Uri.parse('$url/api/v1/vocabulary/${vocabulary.id}'),
+          headers: headers,
+          body: jsonEncode(vocabulary.toJson()),
+        ).timeout(
+          const Duration(seconds: 30),
+          onTimeout: () {
+            throw Exception(
+              'Request timeout - Update đang xử lý lâu, vui lòng thử lại',
+            );
+          },
+        );
+
+    final jsonData = jsonDecode(response.body);
+
+    return BackendResponse<Vocabulary>.fromJson(
+      jsonData,
+      (data) => Vocabulary.fromJson(data as Map<String, dynamic>),
+    );
+  }
 }

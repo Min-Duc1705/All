@@ -60,4 +60,28 @@ class Vocabulary {
       'createdAt': createdAt.toIso8601String(),
     };
   }
+
+  Vocabulary copyWith({
+    int? id,
+    String? word,
+    String? ipa,
+    String? audioUrl,
+    String? meaning,
+    String? wordType,
+    String? example,
+    String? cefrLevel,
+    DateTime? createdAt,
+  }) {
+    return Vocabulary(
+      id: id ?? this.id,
+      word: word ?? this.word,
+      ipa: ipa ?? this.ipa,
+      audioUrl: audioUrl ?? this.audioUrl,
+      meaning: meaning ?? this.meaning,
+      wordType: wordType ?? this.wordType,
+      example: example ?? this.example,
+      cefrLevel: cefrLevel ?? this.cefrLevel,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

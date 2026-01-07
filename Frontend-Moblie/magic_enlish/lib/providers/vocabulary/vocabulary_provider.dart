@@ -234,4 +234,39 @@ class VocabularyProvider with ChangeNotifier {
   bool isFavorite(int? vocabularyId) {
     return vocabularyId != null && _favoriteIds.contains(vocabularyId);
   }
+
+  Future<void> deleteVocabulary(int id) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _vocabularyRepository.deleteVocabulary(id);
+      _vocabularies.removeWhere((v) => v.id == id);
+      _applyFilter();
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateVocabulary(Vocabulary vocabulary) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final updatedVocab = await _vocabularyRepository.updateVocabulary(
+        vocabulary,
+      );
+      final index = _vocabularies.indexWhere((v) => v.id == vocabulary.id);
+      if (index != -1) {
+        _vocabularies[index] = updatedVocab;
+        _applyFilter();
+      }
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

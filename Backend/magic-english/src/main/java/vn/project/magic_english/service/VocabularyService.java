@@ -339,4 +339,68 @@ public class VocabularyService {
         return response;
     }
 
+    /**
+     * Delete vocabulary by ID
+     * Only owner can delete their vocabulary
+     */
+    @Transactional
+    public void deleteVocabulary(Long id) {
+        String email = SecurityUtil.getCurrentUserLogin().orElseThrow(
+                () -> new RuntimeException("User not authenticated"));
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        Vocabulary vocabulary = vocabularyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Vocabulary not found"));
+
+        // Check ownership
+        if (vocabulary.getUser().getId() != user.getId()) {
+            throw new RuntimeException("You can only delete your own vocabulary");
+        }
+
+        vocabularyRepository.delete(vocabulary);
+        log.info("Vocabulary deleted with ID: {}", id);
+    }
+
+    /**
+     * Update vocabulary by ID
+     * Only owner can update their vocabulary
+     */
+    @Transactional
+    public VocabularyDetailResponse updateVocabulary(Long id, AddVocabularyRequest request) {
+        String email = SecurityUtil.getCurrentUserLogin().orElseThrow(
+                () -> new RuntimeException("User not authenticated"));
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        Vocabulary vocabulary = vocabularyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Vocabulary not found"));
+
+        // Check ownership
+        if (vocabulary.getUser().getId() != user.getId()) {
+            throw new RuntimeException("You can only update your own vocabulary");
+        }
+
+        String newWord = request.getWord();
+        boolean wordChanged = !vocabulary.getWord().equalsIgnoreCase(newWord);
+
+        // Update word
+        vocabulary.setWord(newWord);
+
+        // If word changed, re-enrich with AI
+        if (wordChanged) {
+            enrichVocabularyWithAI(vocabulary);
+            vocabulary.setAudioUrl(fetchAudioUrl(newWord));
+        }
+
+        Vocabulary saved = vocabularyRepository.save(vocabulary);
+        log.info("Vocabulary updated with ID: {}", id);
+
+        return VocabularyDetailResponse.fromEntity(saved);
+    }
+
 }

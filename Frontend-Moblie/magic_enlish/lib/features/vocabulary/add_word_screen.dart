@@ -9,11 +9,12 @@ import 'package:magic_enlish/core/widgets/vocabulary/vocabulary_preview_card.dar
 import 'package:magic_enlish/core/widgets/common/success_dialog.dart';
 import 'package:magic_enlish/data/models/vocabulary/Vocabulary.dart';
 import 'package:magic_enlish/data/repositories/vocabulary/vocabulary_repository.dart';
-import 'package:magic_enlish/features/vocabulary/review_word_screen.dart';
 import 'package:magic_enlish/providers/vocabulary/vocabulary_provider.dart';
 
 class AddWordPage extends StatefulWidget {
-  const AddWordPage({super.key});
+  final Vocabulary? vocabulary;
+
+  const AddWordPage({super.key, this.vocabulary});
 
   @override
   State<AddWordPage> createState() => _AddWordPageState();
@@ -29,6 +30,18 @@ class _AddWordPageState extends State<AddWordPage> {
   String _lastFetchedWord = '';
   String? _wordError;
 
+  bool get isEditing => widget.vocabulary != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (isEditing) {
+      _wordController.text = widget.vocabulary!.word;
+      _previewVocabulary = widget.vocabulary;
+      _lastFetchedWord = widget.vocabulary!.word.toLowerCase();
+    }
+  }
+
   @override
   void dispose() {
     _wordController.dispose();
@@ -42,6 +55,16 @@ class _AddWordPageState extends State<AddWordPage> {
     if (word.trim().isEmpty) {
       setState(() {
         _previewVocabulary = null;
+        _isPreviewLoading = false;
+      });
+      return;
+    }
+
+    // If editing and word hasn't changed, don't re-fetch
+    if (isEditing &&
+        word.trim().toLowerCase() == widget.vocabulary!.word.toLowerCase()) {
+      setState(() {
+        _previewVocabulary = widget.vocabulary;
         _isPreviewLoading = false;
       });
       return;
@@ -137,7 +160,7 @@ class _AddWordPageState extends State<AddWordPage> {
         child: Column(
           children: [
             // Top Bar
-            const AppTopBar(title: 'Add New Word'),
+            AppTopBar(title: isEditing ? 'Edit Word' : 'Add New Word'),
 
             Expanded(
               child: SingleChildScrollView(
@@ -196,7 +219,7 @@ class _AddWordPageState extends State<AddWordPage> {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                onPressed: _isLoading ? null : _handleAddWord,
+                onPressed: _isLoading ? null : _handleSaveWord,
                 child: _isLoading
                     ? const SizedBox(
                         height: 24,
@@ -209,7 +232,7 @@ class _AddWordPageState extends State<AddWordPage> {
                         ),
                       )
                     : Text(
-                        "Add Word",
+                        isEditing ? "Update Word" : "Add Word",
                         style: GoogleFonts.lexend(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -224,7 +247,7 @@ class _AddWordPageState extends State<AddWordPage> {
     );
   }
 
-  Future<void> _handleAddWord() async {
+  Future<void> _handleSaveWord() async {
     final word = _wordController.text.trim();
 
     // Validate input
@@ -253,31 +276,49 @@ class _AddWordPageState extends State<AddWordPage> {
     });
 
     try {
-      // Create vocabulary object with only the word (AI will enrich it)
-      final vocabulary = Vocabulary(
-        word: word,
-        ipa: '',
-        audioUrl: '',
-        meaning: '',
-        wordType: '',
-        example: '',
-        cefrLevel: '',
-        createdAt: DateTime.now(),
-      );
-
-      // Add vocabulary through provider
       final provider = Provider.of<VocabularyProvider>(context, listen: false);
-      await provider.addVocabulary(vocabulary, context);
+
+      Vocabulary savedVocab;
+
+      if (isEditing) {
+        // UPDATE MODE
+        final updated = widget.vocabulary!.copyWith(word: word);
+        // If word hasn't changed, we can skip API call or logic if we want,
+        // but backend handles re-enrichment if word changed.
+        // We will call updateVocabulary.
+
+        await provider.updateVocabulary(updated);
+
+        // Find updated one from provider list
+        savedVocab = provider.vocabularies.firstWhere(
+          (v) => v.id == widget.vocabulary!.id,
+          orElse: () => updated,
+        );
+      } else {
+        // ADD MODE
+        final vocabulary = Vocabulary(
+          word: word,
+          ipa: '',
+          audioUrl: '',
+          meaning: '',
+          wordType: '',
+          example: '',
+          cefrLevel: '',
+          createdAt: DateTime.now(),
+        );
+
+        await provider.addVocabulary(vocabulary, context);
+
+        // Get the newly added vocabulary
+        savedVocab = provider.vocabularies.firstWhere(
+          (v) => v.word.toLowerCase() == word.toLowerCase(),
+          orElse: () => vocabulary,
+        );
+      }
 
       if (provider.error != null) {
         throw Exception(provider.error);
       }
-
-      // Get the newly added vocabulary
-      final addedVocab = provider.vocabularies.firstWhere(
-        (v) => v.word.toLowerCase() == word.toLowerCase(),
-        orElse: () => vocabulary,
-      );
 
       // Show success dialog
       if (mounted) {
@@ -287,29 +328,26 @@ class _AddWordPageState extends State<AddWordPage> {
 
         await SuccessDialog.show(
           context: context,
-          title: 'Word Added!',
-          message: '"${addedVocab.word}" is now in your vocabulary list.',
+          title: isEditing ? 'Word Updated!' : 'Word Added!',
+          message:
+              '"${savedVocab.word}" has been ${isEditing ? 'updated' : 'added'} successfully.',
           onViewWord: () {
             Navigator.pop(context); // Close dialog
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => VocabularyDetailScreen(vocabulary: addedVocab),
-              ),
-            ).then((_) {
-              if (mounted) {
-                Navigator.pop(context, true); // Close add word screen
-              }
-            });
+            // If editing, we return true to indicate change
+            Navigator.pop(context, true);
           },
           onContinue: () {
             Navigator.pop(context); // Close dialog
-            // Clear input and preview for next word
-            _wordController.clear();
-            setState(() {
-              _previewVocabulary = null;
-              _lastFetchedWord = '';
-            });
+            if (isEditing) {
+              Navigator.pop(context, true); // Return to list if editing
+            } else {
+              // Clear input and preview for next word if adding
+              _wordController.clear();
+              setState(() {
+                _previewVocabulary = null;
+                _lastFetchedWord = '';
+              });
+            }
           },
         );
       }

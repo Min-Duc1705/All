@@ -64,6 +64,27 @@ public class VocabularyController {
      * Response: {"verb": 120, "noun": 80, "adjective": 60, "adverb": 40, "other":
      * 10}
      */
-    
+
+    /**
+     * Delete vocabulary by ID
+     * DELETE /api/v1/vocabulary/{id}
+     */
+    @DeleteMapping("/vocabulary/{id}")
+    public ResponseEntity<Void> deleteVocabulary(@PathVariable Long id) {
+        vocabularyService.deleteVocabulary(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Update vocabulary by ID
+     * PUT /api/v1/vocabulary/{id}
+     */
+    @PutMapping("/vocabulary/{id}")
+    public ResponseEntity<VocabularyDetailResponse> updateVocabulary(
+            @PathVariable Long id,
+            @Valid @RequestBody AddVocabularyRequest request) {
+        VocabularyDetailResponse response = vocabularyService.updateVocabulary(id, request);
+        return ResponseEntity.ok(response);
+    }
 
 }
