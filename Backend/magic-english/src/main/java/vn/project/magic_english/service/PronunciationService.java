@@ -47,6 +47,7 @@ public class PronunciationService {
     private String buildAnalysisPrompt(String expectedWord, String transcribedText, String ipa) {
         return String.format("""
                 You are an expert English pronunciation coach. Analyze the user's pronunciation attempt.
+                IMPORTANT: The "suggestions" array MUST be written in Vietnamese language.
 
                 Expected word: "%s"
                 IPA pronunciation: %s
@@ -57,7 +58,7 @@ public class PronunciationService {
                     "score": <number from 0-100>,
                     "accuracy": "<excellent/good/fair/poor>",
                     "feedback": "<brief encouraging feedback message>",
-                    "suggestions": ["<suggestion 1>", "<suggestion 2>"],
+                    "suggestions": ["<gợi ý 1 bằng tiếng Việt>", "<gợi ý 2 bằng tiếng Việt>"],
                     "phonemeAnalysis": {
                         "correctPhonemes": ["<correct sounds>"],
                         "problematicPhonemes": ["<sounds that need work>"]
@@ -72,7 +73,7 @@ public class PronunciationService {
                 - 0-49: Needs practice - Significant pronunciation differences
 
                 If the transcribed text is empty or completely different, give a low score but be encouraging.
-                Always provide constructive feedback to help the learner improve.
+                Always provide constructive suggestions in Vietnamese to help the learner improve.
 
                 Return ONLY valid JSON, no additional text.
                 """, expectedWord, ipa != null ? ipa : "N/A", transcribedText);
@@ -169,8 +170,8 @@ public class PronunciationService {
         }
 
         response.setSuggestions(java.util.List.of(
-                "Listen to the audio carefully before recording",
-                "Practice speaking slowly and clearly"));
+                "Nghe kỹ âm thanh trước khi ghi âm",
+                "Luyện tập nói chậm và rõ ràng"));
 
         return response;
     }
